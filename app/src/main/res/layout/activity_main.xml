@@ -1,0 +1,38 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+
+    <Button
+        android:id="@+id/gps"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/gps" />
+
+    <Button
+        android:id="@+id/cu"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/cu" />
+
+    <Button
+        android:id="@+id/cmcc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/cmcc" />
+
+    <Button
+        android:id="@+id/telecom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/telecom" />
+
+    <Button
+        android:id="@+id/one_key"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/one_key" />
+
+</LinearLayout>

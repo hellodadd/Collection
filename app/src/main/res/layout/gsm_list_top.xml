@@ -1,0 +1,28 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_height="@dimen/top_height"
+    android:layout_width="match_parent"
+    android:gravity="center">
+    <TextView
+        style="@style/OneKeyTopStyle"
+        android:text="@string/lac" />
+    <TextView
+        style="@style/OneKeyTopStyle"
+        android:text="@string/cell_id" />
+
+    <TextView
+        android:id="@+id/bcch"
+        style="@style/OneKeyTopStyle"
+        android:visibility="gone"
+        android:text="@string/bcch" />
+
+    <TextView
+        android:id="@+id/bsic"
+        style="@style/OneKeyTopStyle"
+        android:visibility="gone"
+        android:text="@string/bsic" />
+
+    <TextView
+        style="@style/OneKeyTopStyle"
+        android:text="@string/rssi" />
+
+</LinearLayout>

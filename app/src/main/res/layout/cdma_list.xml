@@ -1,0 +1,71 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="10dp"
+    android:background="@color/bg">
+
+    <LinearLayout
+        android:layout_height="@dimen/top_height"
+        android:layout_width="match_parent"
+        android:gravity="center"
+        android:background="@drawable/top_bg">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:textColor="@color/blue"
+            android:gravity="center_horizontal"
+            android:text="@string/sid" />
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:gravity="center_horizontal"
+            android:layout_height="wrap_content"
+            android:textColor="@color/blue"
+            android:text="@string/nid" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:gravity="center_horizontal"
+            android:textColor="@color/blue"
+            android:layout_height="wrap_content"
+            android:text="@string/bid" />
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:gravity="center_horizontal"
+            android:textColor="@color/blue"
+            android:layout_height="wrap_content"
+            android:text="@string/pn" />
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:gravity="center_horizontal"
+            android:textColor="@color/blue"
+            android:layout_height="wrap_content"
+            android:text="@string/rx" />
+    </LinearLayout>
+
+    <RelativeLayout
+        android:id="@+id/progress"
+        android:layout_height="match_parent"
+        android:layout_width="match_parent">
+        <ProgressBar
+            android:visibility="visible"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+        />
+    </RelativeLayout>
+
+    <ListView
+        android:id="@+id/list"
+        android:layout_height="match_parent"
+        android:layout_width="match_parent"
+        android:background="@drawable/list_bg"/>
+
+</LinearLayout>

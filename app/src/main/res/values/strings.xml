@@ -1,0 +1,50 @@
+<resources>
+
+    <string name="app_name">场所采集</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="cu">联通</string>
+    <string name="cu_gsm">联通GSM</string>
+    <string name="wcdma">联通WCDMA</string>
+    <string name="cu_lte">联通4GLTE</string>
+
+    <string name="telecom">电信</string>
+    <string name="cdma">电信CDMA</string>
+    <string name="telecom_lte">电信4GLTE</string>
+
+    <string name="cmcc">移动</string>
+    <string name="tdscdma">移动TD-SCDMA</string>
+    <string name="cmcc_gsm">移动GSM</string>
+    <string name="cmcc_lte">移动4GLTE</string>
+
+    <string name="dynamic">动态采集</string>
+    <string name="undynamic">静态采集</string>
+
+    <string name="gps">GPS</string>
+    <string name="one_key">一键采集</string>
+
+    <string name="lac">LAC</string>
+    <string name="cell_id">CELLID</string>
+    <string name="bcch">BCCH</string>
+    <string name="bsic">BSIC</string>
+    <string name="rssi">RSSI</string>
+
+    <string name="save">save</string>
+
+    <string name="zone">ZONE</string>
+    <string name="nid">NID</string>
+    <string name="sid">SID</string>
+    <string name="bid">BID</string>
+    <string name="pn">PN</string>
+    <string name="rx">RX</string>
+
+    <string name="no">NO</string>
+
+    <string name="phone_not_avaliable">请等待PHONE初始化完毕！</string>
+    <string name="save_success">信息已保存！</string>
+    <string name="none_info">请等待搜索结束！</string>
+
+    <string name="start">开始：</string>
+    <string name="end">结束：</string>
+</resources>
