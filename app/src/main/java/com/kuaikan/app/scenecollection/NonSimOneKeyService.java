@@ -201,6 +201,16 @@ public class NonSimOneKeyService extends Service{
         it.putExtra("bid", bid);
         sendBroadcast(it);
 
+        //*/send to kuaiganapp
+        String[] fileInfo = Util.saveToXml(this,
+                Util.parseResults(resultLists), Util.parseResults(cdmaResultList));
+        Intent intent = new Intent("com.kuaikan.send_result_to_xml");
+        intent.putStringArrayListExtra("result", resultLists);
+        intent.putExtra("uuid", fileInfo[0]);
+        intent.putExtra("file_path", fileInfo[1]);
+        sendBroadcast(intent);
+        //*/
+
         stopSelf();
     }
 

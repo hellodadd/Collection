@@ -317,6 +317,46 @@ public class Util{
         return new String[]{uuidString, FILE_PATH + fileName};
     }
 
+    public static String[] saveToXml(Context c, List<Result> cellInfos, List<Result> cellInfos2){
+        UUID uuid = UUID.randomUUID();
+        String uuidString = uuid.toString().trim().replaceAll("-", "");
+        String fileName = "attach_" + uuidString +".xml";
+
+        try {
+            FileOutputStream outStream = new FileOutputStream(FILE_PATH + fileName);
+            XmlSerializer serializer = Xml.newSerializer();
+            serializer.setOutput(outStream, "UTF-8");
+            serializer.startDocument("UTF-8", false);
+            serializer.startTag(null, Result.DATA);
+
+            for (Result item : cellInfos) {
+                if(item instanceof GsmResult){
+                    saveGsm(serializer, (GsmResult) item);
+                } else if(item instanceof  CdmaResult){
+                    saveCDMA(serializer, (CdmaResult)item);
+                }
+            }
+
+            for (Result item : cellInfos2) {
+                if(item instanceof GsmResult){
+                    saveGsm(serializer, (GsmResult) item);
+                } else if(item instanceof  CdmaResult){
+                    saveCDMA(serializer, (CdmaResult)item);
+                }
+            }
+
+            serializer.endTag(null, Result.DATA);
+            serializer.endDocument();
+            outStream.flush();
+            outStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        Toast.makeText(c, R.string.save_success, Toast.LENGTH_SHORT).show();
+        return new String[]{uuidString, FILE_PATH + fileName};
+    }
+
     public static void saveGsm(XmlSerializer serializer, GsmResult result){
         String lac = result.getLac();
         lac = lac.substring(1, lac.length()-1);
