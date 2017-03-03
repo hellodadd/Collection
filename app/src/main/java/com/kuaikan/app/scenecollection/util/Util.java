@@ -198,6 +198,18 @@ public class Util{
         return cellinfos;
     }
 
+    public static List<Result> parseResults(List<String> resultList,String sid, String nid, String bid){
+        List<Result> cellinfos = new ArrayList<Result>();
+        //cdma
+        if(hasCDMAInfos(resultList)){
+            parseCDMA(resultList, cellinfos, sid, nid, bid);
+        }
+
+        //gsm
+        parseGsm(resultList, cellinfos);
+        return cellinfos;
+    }
+
     public static void parseGsm(List<String> resultList, List<Result> cell){
         for(String currentCell : resultList){
             if(currentCell.startsWith("+ECELL")){
@@ -249,6 +261,58 @@ public class Util{
                 sid = info1[3];
                 nid = info1[4];
                 bid = info1[5];
+            }
+        }
+
+        for(String item : resultList){
+            if(item.startsWith("+ECENGINFO:\"1xRTT_Radio_Info\"")){
+                rx_power1 = Integer.parseInt(item.split(",")[4]);
+            }
+        }
+
+        for(String item : resultList){
+            if(item.startsWith("+ECENGINFO:\"1xRTT_Serving_Neighbr_Set_Info\"")){
+                String[] info2 = item.split(",");
+                int cand_set_count = Integer.parseInt(info2[5]);
+                int cellcount = Integer.parseInt(info2[6 + cand_set_count * 3]) + 1;
+                for(int i = 0;i<cellcount;i++){
+                    CdmaResult cdma = new CdmaResult();
+                    if(i == 0){
+                        cdma.setSid(sid);
+                        cdma.setNid(nid);
+                        cdma.setBid(bid);
+                        cdma.setPn(info2[2]);
+                        cdma.setRx(""+ (rx_power1 + Integer.parseInt(info2[3])/-2));
+                    } else {
+                        cdma.setSid(sid);
+                        cdma.setNid(nid);
+                        cdma.setBid(bid);
+                        cdma.setPn(info2[6 + cand_set_count * 3 + 1 + (i-1) * 3]);
+                        int rx = Integer.parseInt(info2[6 + cand_set_count * 3 + 1 + ((i-1) * 3) + 1]);
+                        cdma.setRx("" + (rx_power1 + rx/-2));
+                    }
+                    cell.add(cdma);
+                }
+            }
+        }
+    }
+
+    public static void parseCDMA(List<String> resultList, List<Result> cell,String sid, String nid, String bid){
+        String mcc = "";
+        String mnc = "";
+        String temp_bid = "";
+        String temp_sid = "";
+        String temp_nid = "";
+        int rx_power1 = 0;
+        for(String item : resultList){
+            if(item.startsWith("+VLOCINFO")){
+                String[] info1 = item.split(",");
+                mcc = info1[1];
+                mnc = info1[2];
+                /*
+                temp_bid = info1[3];
+                temp_sid = info1[4];
+                temp_nid = info1[5];*/
             }
         }
 
