@@ -195,8 +195,17 @@ public class NonSimOneKeyActivity extends Activity{
         Intent it = new Intent();
         it.setPackage("com.kuaikan.app.scenecollection");
         it.setAction("com.kuaikan.nonsim_one_key");
+        it.putExtra("show", true);
         startService(it);
     }
+
+    private void stopOneKeyService(){
+        Intent it = new Intent();
+        it.setPackage("com.kuaikan.app.scenecollection");
+        it.setAction("com.kuaikan.nonsim_one_key");
+        stopService(it);
+    }
+
 
     @Override
     public void onResume() {
@@ -217,6 +226,7 @@ public class NonSimOneKeyActivity extends Activity{
         super.onPause();
         mHandler.removeMessages(EVENT_GET_CELLINFO);
         unregisterReceiver(mReceiver);
+        stopOneKeyService();
     }
 
     private static final int EVENT_SET_GENERATION = 0;

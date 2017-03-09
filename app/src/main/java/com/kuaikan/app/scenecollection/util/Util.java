@@ -157,7 +157,6 @@ public class Util{
     }
 
     public static void invokeAT(String[] atCmd, Message msg){
-        Log.i("gejun",atCmd[0]);
         try {
             Object phone = Util.reflectPhone();
             Class pf = Class.forName("com.android.internal.telephony.Phone");
@@ -191,18 +190,6 @@ public class Util{
         //cdma
         if(hasCDMAInfos(resultList)){
             parseCDMA(resultList, cellinfos);
-        }
-
-        //gsm
-        parseGsm(resultList, cellinfos);
-        return cellinfos;
-    }
-
-    public static List<Result> parseResults(List<String> resultList,String sid, String nid, String bid){
-        List<Result> cellinfos = new ArrayList<Result>();
-        //cdma
-        if(hasCDMAInfos(resultList)){
-            parseCDMA(resultList, cellinfos, sid, nid, bid);
         }
 
         //gsm
@@ -297,58 +284,6 @@ public class Util{
         }
     }
 
-    public static void parseCDMA(List<String> resultList, List<Result> cell,String sid, String nid, String bid){
-        String mcc = "";
-        String mnc = "";
-        String temp_bid = "";
-        String temp_sid = "";
-        String temp_nid = "";
-        int rx_power1 = 0;
-        for(String item : resultList){
-            if(item.startsWith("+VLOCINFO")){
-                String[] info1 = item.split(",");
-                mcc = info1[1];
-                mnc = info1[2];
-                /*
-                temp_bid = info1[3];
-                temp_sid = info1[4];
-                temp_nid = info1[5];*/
-            }
-        }
-
-        for(String item : resultList){
-            if(item.startsWith("+ECENGINFO:\"1xRTT_Radio_Info\"")){
-                rx_power1 = Integer.parseInt(item.split(",")[4]);
-            }
-        }
-
-        for(String item : resultList){
-            if(item.startsWith("+ECENGINFO:\"1xRTT_Serving_Neighbr_Set_Info\"")){
-                String[] info2 = item.split(",");
-                int cand_set_count = Integer.parseInt(info2[5]);
-                int cellcount = Integer.parseInt(info2[6 + cand_set_count * 3]) + 1;
-                for(int i = 0;i<cellcount;i++){
-                    CdmaResult cdma = new CdmaResult();
-                    if(i == 0){
-                        cdma.setSid(sid);
-                        cdma.setNid(nid);
-                        cdma.setBid(bid);
-                        cdma.setPn(info2[2]);
-                        cdma.setRx(""+ (rx_power1 + Integer.parseInt(info2[3])/-2));
-                    } else {
-                        cdma.setSid(sid);
-                        cdma.setNid(nid);
-                        cdma.setBid(bid);
-                        cdma.setPn(info2[6 + cand_set_count * 3 + 1 + (i-1) * 3]);
-                        int rx = Integer.parseInt(info2[6 + cand_set_count * 3 + 1 + ((i-1) * 3) + 1]);
-                        cdma.setRx("" + (rx_power1 + rx/-2));
-                    }
-                    cell.add(cdma);
-                }
-            }
-        }
-    }
-
     public static String[] saveToXml(Context c, List<Result> cellInfos){
         UUID uuid = UUID.randomUUID();
         String uuidString = uuid.toString().trim().replaceAll("-", "");
@@ -362,46 +297,6 @@ public class Util{
             serializer.startTag(null, Result.DATA);
 
             for (Result item : cellInfos) {
-                if(item instanceof GsmResult){
-                    saveGsm(serializer, (GsmResult) item);
-                } else if(item instanceof  CdmaResult){
-                    saveCDMA(serializer, (CdmaResult)item);
-                }
-            }
-
-            serializer.endTag(null, Result.DATA);
-            serializer.endDocument();
-            outStream.flush();
-            outStream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        Toast.makeText(c, R.string.save_success, Toast.LENGTH_SHORT).show();
-        return new String[]{uuidString, FILE_PATH + fileName};
-    }
-
-    public static String[] saveToXml(Context c, List<Result> cellInfos, List<Result> cellInfos2){
-        UUID uuid = UUID.randomUUID();
-        String uuidString = uuid.toString().trim().replaceAll("-", "");
-        String fileName = "attach_" + uuidString +".xml";
-
-        try {
-            FileOutputStream outStream = new FileOutputStream(FILE_PATH + fileName);
-            XmlSerializer serializer = Xml.newSerializer();
-            serializer.setOutput(outStream, "UTF-8");
-            serializer.startDocument("UTF-8", false);
-            serializer.startTag(null, Result.DATA);
-
-            for (Result item : cellInfos) {
-                if(item instanceof GsmResult){
-                    saveGsm(serializer, (GsmResult) item);
-                } else if(item instanceof  CdmaResult){
-                    saveCDMA(serializer, (CdmaResult)item);
-                }
-            }
-
-            for (Result item : cellInfos2) {
                 if(item instanceof GsmResult){
                     saveGsm(serializer, (GsmResult) item);
                 } else if(item instanceof  CdmaResult){
@@ -568,10 +463,24 @@ public class Util{
      * @param msg
      */
     public static void AtERAT(String g, Message msg){
+        if("0".equals(g)){
+            Log.i("gejun","*********************GSM****************");
+        } else if("1".equals(g)){
+            Log.i("gejun","*********************3G****************");
+        } else {
+            Log.i("gejun","*********************LTE****************");
+        }
         invokeAT(new String[]{"AT+ERAT=" + g + ",0", ERAT}, msg);
     }
 
     public static void AtCOPS(String mccmnc, Message msg){
+        if("46000".equals(mccmnc)){
+            Log.i("gejun",">>>>>>>>>>>>>>>>>>CMCC<<<<<<<<<<<<<<<");
+        } else if("46001".equals(mccmnc)){
+            Log.i("gejun",">>>>>>>>>>>>>>>>>>CU<<<<<<<<<<<<<<<");
+        } else if("46011".equals(mccmnc)){
+            Log.i("gejun",">>>>>>>>>>>>>>>>>>CT<<<<<<<<<<<<<<<");
+        }
         invokeAT(new String[]{"AT+COPS=1,2,\""+mccmnc+"\"", COPS}, msg);
     }
 }

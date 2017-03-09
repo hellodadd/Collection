@@ -2,6 +2,7 @@ package com.kuaikan.app.scenecollection;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -23,6 +24,8 @@ public class MainActivity extends Activity implements OnClickListener{
         dynamic.setOnClickListener(this);
         undynamic = (Button)findViewById(R.id.undynamic);
         undynamic.setOnClickListener(this);
+
+        Log.i("gejun","verison 1.0");
     }
 
     @Override

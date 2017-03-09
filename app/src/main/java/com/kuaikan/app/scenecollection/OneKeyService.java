@@ -1,34 +1,63 @@
 package com.kuaikan.app.scenecollection;
 
+import android.app.Activity;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ListAdapter;
+import android.widget.ListView;
+import android.widget.RelativeLayout;
+import android.widget.ScrollView;
+import android.widget.TextView;
+import android.widget.Toast;
 
+import com.kuaikan.app.scenecollection.adapter.CDMADataAdapter;
+import com.kuaikan.app.scenecollection.adapter.DataAdapter;
+import com.kuaikan.app.scenecollection.bean.CdmaResult;
+import com.kuaikan.app.scenecollection.bean.GsmResult;
+import com.kuaikan.app.scenecollection.bean.Result;
 import com.kuaikan.app.scenecollection.util.Util;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.List;
 
-/**
- * Created by gejun on 2016/12/2.
- */
+import static com.kuaikan.app.scenecollection.R.id.cdma;
+import static com.kuaikan.app.scenecollection.R.id.startTime;
+import static com.kuaikan.app.scenecollection.util.Util.EVENT_CELL_INFO;
+import static com.kuaikan.app.scenecollection.util.Util.EVENT_COPS;
 
-public class OneKeyService extends Service {
+public class OneKeyService extends Service{
 
-    private static int REQUEST_ONE_KEY = 0;
+    //每一个rat下搜到的cell数，
+    /**
+     * 2g:2 cmcc cu
+     * 3g:2 cmcc cu
+     * 4g:3 cmcc cu ct
+     */
+    int resultCount = 0;
 
-    private ArrayList<String> result = new ArrayList<String>();
+    //当前在搜索的rat
+    /**
+     * 0:2g
+     * 2:3g
+     * 7:4g
+     */
+    String currentRat = "0";
 
-    private ArrayList<Integer> opList = new ArrayList<Integer>();
-    private ArrayList<Integer> generations = new ArrayList<Integer>();
-
+    private int attemptFlag = 0;
 
     @Nullable
     @Override
@@ -36,64 +65,56 @@ public class OneKeyService extends Service {
         return null;
     }
 
+    private final static int EVENT_GET_COPS = 99;
+    private boolean save = true;
     @Override
     public void onCreate() {
+        Util.atCOPS(mHandler.obtainMessage(EVENT_GET_COPS));
         super.onCreate();
-        Log.i("gejun","OneKeyService onCreate()");
-        initGs();
-
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(ACTION_GET_CURRENT_SIM);
-        filter.addAction(ACTION_SEARCH_OVER);
-        registerReceiver(mReceiver, filter);
-
-        Util.startSetOPService(this, "get_current_siminfo");
-
-        mHandler.sendEmptyMessageDelayed(EVENT_GET_CELLINFO, 2000);
     }
 
-    private void initGs(){
-        generations.clear();
-        generations.add(0);
-        generations.add(1);
-        generations.add(3);
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        Util.AtERAT(currentRat, mHandler.obtainMessage(Util.EVENT_ERAT));
+        if(intent.getBooleanExtra("show", false)) save = false;
+        return super.onStartCommand(intent, flags, startId);
     }
-
-//    @Override
-//    protected void onHandleIntent(Intent intent) {
-//        int whatRequest = intent.getIntExtra("request_type", -1);
-//        if(whatRequest == REQUEST_ONE_KEY){
-//            oneKey();
-//        }
-//    }
-
-    private static final int EVENT_GET_CELLINFO = 0;
-    private static final int EVENT_GET_NETWORKMODE = 1;
-    private static final int EVENT_SET_GENERATION = 2;
-    private static final int EVENT_GET_CDMA_INFO = 3;
-    private static final int EVENT_GET_ACTIVE_CDMA = 4;
-    private static final int EVENT_GET_NEIGHBOR_CDMA = 5;
 
     Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-            switch(msg.what){
-                case EVENT_GET_CELLINFO: {
-                    try {
-                        Util.getCellInfo(mHandler.obtainMessage(EVENT_GET_NETWORKMODE));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        Log.i("gejun","e = " + e.toString());
+            switch (msg.what){
+                case Util.EVENT_ERAT:{
+                    Util.showOriginResult(msg, Util.ERAT);
+                    //search order cmcc cu ct
+                    if(resultCount == 0){
+                        Util.AtCOPS("46000", mHandler.obtainMessage(EVENT_COPS));
+                    } else if(resultCount == 1){
+                        Util.AtCOPS("46001", mHandler.obtainMessage(EVENT_COPS));
+                    } else if(resultCount == 2){
+                        Util.AtCOPS("46011", mHandler.obtainMessage(EVENT_COPS));
                     }
-
-                    mHandler.sendEmptyMessageDelayed(EVENT_GET_CELLINFO, 2000);
                     break;
                 }
-                case EVENT_GET_NETWORKMODE:{
-                    dealRestult(msg);
+                case EVENT_COPS:{
+                    //Util.showOriginResult(msg, Util.COPS);
+                    //get cellinfo
+                    try {
+                        Util.getCellInfo(mHandler.obtainMessage(Util.EVENT_CELL_INFO));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    mHandler.removeMessages(EVENT_COPS);
+                    mHandler.sendEmptyMessageDelayed(EVENT_COPS, 2000);
+                    break;
+                }
+                case Util.EVENT_CELL_INFO:{
+                    showResult(msg, Util.ECELL);
                     break;
                 }
                 case EVENT_GET_CDMA_INFO:{
+                    Util.invokeAT4CDMA(new String[]{"AT+CPON","+CPON"}, null);
+
                     Util.invokeAT4CDMA(new String[]{"AT+VLOCINFO?", "+VLOCINFO"},
                             mHandler.obtainMessage(EVENT_GET_ACTIVE_CDMA));
 
@@ -104,6 +125,10 @@ public class OneKeyService extends Service {
                 case EVENT_GET_ACTIVE_CDMA:
                 case EVENT_GET_NEIGHBOR_CDMA:{
                     showCDMAResult(msg, "EVENT" + msg.what);
+                    break;
+                }
+                case EVENT_GET_COPS:{
+                    Util.showOriginResult(msg, "GET_COPS");
                     break;
                 }
             }
@@ -141,9 +166,9 @@ public class OneKeyService extends Service {
     private String bid;
     private String nid;
     private int rx_power1;
-
-    private String vlocinfo;
-
+    private String[] cdmaResult;
+    private int cdmaCount = 0;
+    String vlocinfo="";
     private void extraData1(String[] o){
         if(o.length == 0) return;
         if(o[0].startsWith("+VLOCINFO")){
@@ -165,154 +190,35 @@ public class OneKeyService extends Service {
 
         if(o[2].split(",")[1].equals("0")){
             mHandler.sendEmptyMessage(EVENT_GET_CDMA_INFO);
-            return;
+            cdmaCount++;
+            if(cdmaCount < 10) return;
         }
         Log.i("gejun","************save result*************");
         mHandler.removeMessages(EVENT_GET_CDMA_INFO);
-//        cdmaResult = o;
-        result.add(vlocinfo);
-        for(int i=0;i<o.length;i++){
-//            cdmaResultList.add(o[i]);
-            result.add(o[i]);
-        }
-        opList.add(Integer.parseInt(mnc));
-        Log.i("gejun",mnc + " has search over!");
-        if(opList.size() == 2){
-            Log.i("gejun","search over!");
-            sendResult();
-            mHandler.removeMessages(EVENT_GET_CELLINFO);
-        } else {
-            initGs();
-            //switch sim
-            Util.startSetOPService(this, "switch");
-        }
-    }
-
-    private void dealRestult(Message msg){
-        String[] arr = null;
-        try {
-            Class arC = Class.forName("android.os.AsyncResult");
-            Field result = arC.getDeclaredField("result");
-            Object resultString = result.get(msg.obj);
-            if(resultString == null) return;
-            arr = (String[]) resultString;
-        } catch (Exception e){
-            Log.i("gejun","e = " + e.toString());
-        }
-
-        if(arr != null){
-            extraData(arr);
-        }
-    }
-
-    private long startSearchTime;
-    private int currentG;
-
-    private void extraData(String[] p){
-        if(opList.size() > 2){
-            mHandler.removeMessages(EVENT_GET_CELLINFO);
-        }
-        String o = p[0];
-        Log.i("gejun", "cell: " + o);
-        if("+ECELL: 0".equals(o)) return;
-        String[] subItems = o.split(",");
-        String rat = subItems[1];
-        int mnc = Integer.parseInt(subItems[5]);
-        int g = 0;
-        if(rat.equals("0")){//2g
-            g = 0;
-        } else if(rat.equals("2")) {//3g
-            g = 1;
-        } else if(rat.equals("7")) {//4g
-            g = 3;
-        }
-
-        //log
-        if(generations != null && generations.size() > 0){
-            for(int i =0;i<generations.size();i++){
-                Log.i("gejun","g" + i + ":" + generations.get(i));
-            }
-        }
-        if(opList != null && opList.size() > 0){
-            for(int i =0;i<opList.size();i++){
-                Log.i("gejun","op" + i + ":" + opList.get(i));
+        resultLists1.add(vlocinfo);
+        if(cdmaCount != 10) {
+            cdmaResult = o;
+            for (int i = 0; i < o.length; i++) {
+                cdmaResultList.add(o[i]);
+                resultLists1.add(o[i]);
             }
         }
 
-        if(!generations.contains(g) || opList.contains(mnc)){//this g had got
-            long lastTime = System.currentTimeMillis() - startSearchTime;
-            Log.i("gejun","lasttime = " + lastTime);
-            if(lastTime > 15000 && lastTime < 20000){
-                Util.invokeAT(new String[]{"AT+ERAT="+ currentG +",0","+ERAT"},
-                        mHandler.obtainMessage(EVENT_SET_GENERATION));
-            }
-            if(startSearchTime != 0 && lastTime > 30000){
-                Log.i("gejun","**********************fail search op: g = " + currentG + ", mnc = " + mnc);
-                generations.remove(new Integer(currentG));
-                if(generations.size() > 0){
-                    if(generations.get(0) == 4){
-                        startSearchTime = 0;
-                        mHandler.sendEmptyMessage(EVENT_GET_CDMA_INFO);
-                        return;
-                    }
-                    startSearchTime = System.currentTimeMillis();
-                    currentG = generations.get(0);
-                    Util.invokeAT(new String[]{"AT+ERAT="+ currentG +",0","+ERAT"},
-                            mHandler.obtainMessage(EVENT_SET_GENERATION));
-                } else {
-                    Log.i("gejun",mnc + " has search over!switch another or end!");
-//                    sendResult();
-                    opList.add(mnc);
-                    if(opList.size() == 2){
-                        Log.i("gejun","search end!!!!!!!");
-                        //search over
-                        sendResult();
-                        mHandler.removeMessages(EVENT_GET_CELLINFO);
-                    } else {
-                        initGs();
-                        //switch sim
-                        Util.startSetOPService(this, "switch");
-                    }
-                }
-            }
-            return;
-        } else {
-            result.add(o);//add new result
-            generations.remove(new Integer(g));
-            //search other g
-            if(generations.size() > 0){
-                if(generations.get(0) == 4){
-                    startSearchTime = 0;
-                    mHandler.sendEmptyMessage(EVENT_GET_CDMA_INFO);
-                    return;
-                }
-                startSearchTime = System.currentTimeMillis();
-                currentG = generations.get(0);
-                Log.i("gejun","set nextG = " + currentG);
-                Util.invokeAT(new String[]{"AT+ERAT="+ currentG +",0","+ERAT"},
-                        mHandler.obtainMessage(EVENT_SET_GENERATION));
-            } else {
-                Log.i("gejun",mnc + " has search over, change another or end!!!");
-                opList.add(mnc);
-                if(opList.size() == 2 ){
-                    Log.i("gejun","search over!!!");
-                    sendResult();
-                    mHandler.removeMessages(EVENT_GET_CELLINFO);
-                } else {
-                    initGs();
-                    //switch sim
-                    Util.startSetOPService(this, "switch");
-                }
-            }
+        if(save){
+            String[] fileInfo = Util.saveToXml(this, Util.parseResults(resultLists1));
+            Intent it = new Intent("com.kuaikan.send_result");
+            it.putStringArrayListExtra("result", resultLists1);
+            it.putExtra("uuid", fileInfo[0]);
+            it.putExtra("file_path", fileInfo[1]);
+            sendBroadcast(it);
         }
-    }
 
-    private void sendResult(){
-        String[] fileInfo = Util.saveToXml(this, Util.parseResults(result));
-        Intent it = new Intent("com.kuaikan.send_result");
-        it.putStringArrayListExtra("result", result);
-        it.putExtra("uuid", fileInfo[0]);
-        it.putExtra("file_path", fileInfo[1]);
+        Intent it = new Intent("com.kuaikan.nonsim_send_result");
+        it.putStringArrayListExtra("result", resultLists);
+        it.putStringArrayListExtra("cdma_result", cdmaResultList);
+        it.putExtra("sid", sid);
+        it.putExtra("nid", nid);
+        it.putExtra("bid", bid);
         sendBroadcast(it);
 
         stopSelf();
@@ -321,28 +227,145 @@ public class OneKeyService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(mReceiver);
-        Log.i("gejun","OneKeyService onDestroy!!!");
+        mHandler.removeMessages(Util.EVENT_CELL_INFO);
+        mHandler.removeMessages(EVENT_COPS);
+        Log.i("gejun","OneKeyService onDestroy!");
     }
 
-    private static final String ACTION_SEARCH_OVER = "com.kuaikan.action.SEARCH_OVER";
-    private static final String ACTION_GET_CURRENT_SIM = "com.kuaikan.action.GET_SIM_INFO";
+    private void showResult(Message msg, String tag){
+        String[] arr = null;
+        try {
+            Class arC = Class.forName("android.os.AsyncResult");
+            Field result = arC.getDeclaredField("result");
+            Object resultString = result.get(msg.obj);
+            if(resultString == null) return;
+            arr = (String[]) resultString;
+            for(int i =0;i<arr.length;i++){
+                Log.i("gejun","show Result = " + arr[i]);
+            }
 
-    private BroadcastReceiver mReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            Log.i("gejun","receive Action: " + action);
-            if(action.equals(ACTION_SEARCH_OVER)){
-                sendResult();
-                mHandler.removeMessages(EVENT_GET_CELLINFO);
-            } else if(action.equals(ACTION_GET_CURRENT_SIM)){
-                generations.clear();
-                generations.add(3);
-                generations.add(4);
-                Util.invokeAT(new String[]{"AT+ERAT=3,0","+ERAT"},
-                        mHandler.obtainMessage(EVENT_SET_GENERATION));
+        } catch (Exception e){
+            Log.i("gejun","e = " + e.toString());
+        }
+        if(arr != null && !arr[0].equals("+ECELL: 0")) {
+            extraData(arr);
+        }
+    }
+
+    private int getCellCount(String cellinfo){
+        return Integer.parseInt(cellinfo.substring(8, 9));
+    }
+
+    private boolean isOneSearch = false;
+
+    private void extraData(String[] p){
+        String o = p[0];
+        String[] subItems = o.split(",");
+        String rat = subItems[1];
+        int mnc = Integer.parseInt(subItems[5]);
+        if(currentRat.equals(rat) && mnc == getMncFromResultCount(resultCount)){
+            if(!isOneSearch){
+                resultLists.add(o);
+                resultLists1.add(o);
+                isOneSearch = true;
+            } else {
+                int count = resultLists.size();
+                if(count > 0){
+                    if(getCellCount(resultLists.get(count - 1)) < getCellCount(o)){
+                        resultLists.set(count - 1, o);
+                        resultLists1.set(count - 1, o);
+                    }
+                }
+            }
+            attemptFlag++;
+
+            if(attemptFlag == 10) {
+                isOneSearch = false;
+                attemptFlag = 0;
+                resultCount++;//搜索结果加1个
+                if ((currentRat.equals("0") || currentRat.equals("2"))
+                        && resultCount < 2) {
+                    Util.AtCOPS("46001", mHandler.obtainMessage(EVENT_COPS));
+                } else if (currentRat.equals("7")) {
+                    if (resultCount < 2) {
+                        Util.AtCOPS("46001", mHandler.obtainMessage(EVENT_COPS));
+                    } else if (resultCount < 3) {
+                        Util.AtCOPS("46011", mHandler.obtainMessage(EVENT_COPS));
+                    }
+                }
+
+                if (currentRat.equals("0") && resultCount == 2) {
+                    resultCount = 0;
+                    currentRat = "2";
+                    Util.AtERAT("1", mHandler.obtainMessage(Util.EVENT_ERAT));
+                } else if (currentRat.equals("2") && resultCount == 2) {
+                    resultCount = 0;
+                    currentRat = "7";
+                    Util.AtERAT("3", mHandler.obtainMessage(Util.EVENT_ERAT));
+                } else if (currentRat.equals("7") && resultCount == 3) {
+                    resultCount = 0;
+                    currentRat = "0";
+                    sendCDMARequest();
+                }
+            }
+        } else {
+            attemptFlag++;
+            if(attemptFlag == 10){
+                resultCount++;
+            }
+
+            if(attemptFlag == 10) {
+                attemptFlag = 0;
+                if ((currentRat.equals("0") || currentRat.equals("2"))
+                        && resultCount < 2) {
+                    Util.AtCOPS("46001", mHandler.obtainMessage(EVENT_COPS));
+                } else if (currentRat.equals("7")) {
+                    if (resultCount < 2) {
+                        Util.AtCOPS("46001", mHandler.obtainMessage(EVENT_COPS));
+                    } else if (resultCount < 3) {
+                        Util.AtCOPS("46011", mHandler.obtainMessage(EVENT_COPS));
+                    }
+                }
+
+                if (currentRat.equals("0") && resultCount == 2) {
+                    resultCount = 0;
+                    currentRat = "2";
+                    Util.AtERAT("1", mHandler.obtainMessage(Util.EVENT_ERAT));
+                } else if (currentRat.equals("2") && resultCount == 2) {
+                    resultCount = 0;
+                    currentRat = "7";
+                    Util.AtERAT("3", mHandler.obtainMessage(Util.EVENT_ERAT));
+                } else if (currentRat.equals("7") && resultCount == 3) {
+                    resultCount = 0;
+                    currentRat = "0";
+                    sendCDMARequest();
+                }
             }
         }
-    };
+    }
+
+    private int getMncFromResultCount(int count){
+        int mnc = 0;
+        if(count == 0){
+            mnc = 0;
+        } else if(count == 1){
+            mnc = 1;
+        } else if(count == 2){
+            mnc = 11;
+        }
+        return mnc;
+    }
+
+    private ArrayList<String> resultLists = new ArrayList<String>();
+    private ArrayList<String> resultLists1 = new ArrayList<String>();
+    private ArrayList<String> cdmaResultList = new ArrayList<String>();
+
+    private static final int EVENT_GET_CDMA_INFO = 5;
+    private static final int EVENT_GET_ACTIVE_CDMA =  6;
+    private static final int EVENT_GET_NEIGHBOR_CDMA =  7;
+
+    private void sendCDMARequest(){
+        mHandler.removeMessages(EVENT_GET_CDMA_INFO);
+        mHandler.sendEmptyMessage(EVENT_GET_CDMA_INFO);
+    }
 }
