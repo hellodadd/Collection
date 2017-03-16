@@ -1,6 +1,7 @@
 <resources>
 
-    <string name="app_name">基站信息</string>
+    <string name="app_name">场所采集</string>
+    <string name="app_activity_label">基站信息</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
 

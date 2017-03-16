@@ -112,6 +112,7 @@
         </service>
 
         <activity android:name=".retrieve.RetrieveXmlActivity"
+            android:label="@string/app_activity_label"
             android:exported="true">
             <intent-filter>
                 <action android:name="com.kuaikan.ACTION_RETRIEVE_XML"/>
