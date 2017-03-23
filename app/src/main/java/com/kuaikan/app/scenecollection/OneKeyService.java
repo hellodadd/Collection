@@ -70,6 +70,7 @@ public class OneKeyService extends Service{
     @Override
     public void onCreate() {
         Util.atCOPS(mHandler.obtainMessage(EVENT_GET_COPS));
+        Log.i("zwb","zwb --------- onCreate");
         super.onCreate();
     }
 
@@ -77,6 +78,7 @@ public class OneKeyService extends Service{
     public int onStartCommand(Intent intent, int flags, int startId) {
         Util.AtERAT(currentRat, mHandler.obtainMessage(Util.EVENT_ERAT));
         if(intent.getBooleanExtra("show", false)) save = false;
+        Log.i("zwb","zwb --------- onStartCommand");
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -87,6 +89,7 @@ public class OneKeyService extends Service{
                 case Util.EVENT_ERAT:{
                     Util.showOriginResult(msg, Util.ERAT);
                     //search order cmcc cu ct
+                    Log.i("zwb","zwb --------- handleMessage EVENT_ERAT resultCount = " + resultCount);
                     if(resultCount == 0){
                         Util.AtCOPS("46000", mHandler.obtainMessage(EVENT_COPS));
                     } else if(resultCount == 1){
@@ -99,6 +102,7 @@ public class OneKeyService extends Service{
                 case EVENT_COPS:{
                     //Util.showOriginResult(msg, Util.COPS);
                     //get cellinfo
+                    Log.i("zwb","zwb --------- handleMessage EVENT_COPS " );
                     try {
                         Util.getCellInfo(mHandler.obtainMessage(Util.EVENT_CELL_INFO));
                     } catch (Exception e) {
@@ -109,6 +113,7 @@ public class OneKeyService extends Service{
                     break;
                 }
                 case Util.EVENT_CELL_INFO:{
+                    Log.i("zwb","zwb --------- handleMessage EVENT_CELL_INFO " );
                     showResult(msg, Util.ECELL);
                     break;
                 }
@@ -242,6 +247,7 @@ public class OneKeyService extends Service{
             arr = (String[]) resultString;
             for(int i =0;i<arr.length;i++){
                 Log.i("gejun","show Result = " + arr[i]);
+                Log.i("zwb","zwb --------- show Result = " + arr[i]);
             }
 
         } catch (Exception e){
@@ -260,17 +266,27 @@ public class OneKeyService extends Service{
 
     private void extraData(String[] p){
         String o = p[0];
+        Log.i("zwb","zwb --------- extraData o = " + o);
         String[] subItems = o.split(",");
         String rat = subItems[1];
+        Log.i("zwb","zwb --------- extraData rat = " + rat);
         int mnc = Integer.parseInt(subItems[5]);
+        Log.i("zwb","zwb --------- extraData mnc = " + mnc);
+        Log.i("zwb","zwb --------- extraData resultCount = " + resultCount);
+        Log.i("zwb","zwb --------- extraData currentRat = " + currentRat);
         if(currentRat.equals(rat) && mnc == getMncFromResultCount(resultCount)){
+            Log.i("zwb","zwb --------- extraData isOneSearch = " + isOneSearch);
             if(!isOneSearch){
                 resultLists.add(o);
                 resultLists1.add(o);
                 isOneSearch = true;
             } else {
                 int count = resultLists.size();
+                Log.i("zwb","zwb --------- extraData count = " + count);
                 if(count > 0){
+                    Log.i("zwb","zwb --------- extraData resultLists.get(count - 1) = " + resultLists.get(count - 1));
+                    Log.i("zwb","zwb --------- extraData count-1 = " + getCellCount(resultLists.get(count - 1)));
+                    Log.i("zwb","zwb --------- extraData count0 = " + getCellCount(o));
                     if(getCellCount(resultLists.get(count - 1)) < getCellCount(o)){
                         resultLists.set(count - 1, o);
                         resultLists1.set(count - 1, o);
@@ -278,11 +294,13 @@ public class OneKeyService extends Service{
                 }
             }
             attemptFlag++;
+            Log.i("zwb","zwb --------- extraData attemptFlag = " + attemptFlag);
 
             if(attemptFlag == 10) {
                 isOneSearch = false;
                 attemptFlag = 0;
                 resultCount++;//搜索结果加1个
+                Log.i("zwb","zwb --------- extraData 303 resultCount = " + resultCount);
                 if ((currentRat.equals("0") || currentRat.equals("2"))
                         && resultCount < 2) {
                     Util.AtCOPS("46001", mHandler.obtainMessage(EVENT_COPS));
@@ -293,6 +311,8 @@ public class OneKeyService extends Service{
                         Util.AtCOPS("46011", mHandler.obtainMessage(EVENT_COPS));
                     }
                 }
+
+                Log.i("zwb","zwb --------- extraData 315 resultCount = " + currentRat);
 
                 if (currentRat.equals("0") && resultCount == 2) {
                     resultCount = 0;

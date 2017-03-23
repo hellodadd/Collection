@@ -57,6 +57,14 @@ public class Util{
 
     public static final boolean NON_SIM = true;
 
+    public static final int MD_TYPE_UNKNOWN = 0;
+    public static final int MD_TYPE_WG      = 3;
+    public static final int MD_TYPE_TG      = 4;
+    public static final int MD_TYPE_LWG     = 5;
+    public static final int MD_TYPE_LTG     = 6;
+    public static final int MD_TYPE_FDD     = 100;
+    public static final int MD_TYPE_TDD     = 101;
+
     public static void setGeneration(int generation, Message msg) throws Exception{
         String[] atCmd = new String[]{"AT+ERAT="+generation,"+ERAT"};
 //        getPhone().invokeOemRilRequestStrings(atCmd, msg);
@@ -141,6 +149,42 @@ public class Util{
         }catch (Exception exception){
             Log.i("gejun","exception = " + exception.toString());
             return null;
+        }
+    }
+
+    public static Object reflectWorldPhone(){
+        try {
+            Class pf = Class.forName("com.android.internal.telephony.PhoneFactory");
+            Method getWorldPhone = pf.getDeclaredMethod("getWorldPhone");
+            Object worldPhone = getWorldPhone.invoke(pf);
+            return worldPhone;
+        }catch (Exception ex){
+            Log.i("zwb", "exception = " + ex.toString());
+            return null;
+        }
+    }
+
+    public static int reflectModemType(){
+        try {
+            Class pf = Class.forName("com.mediatek.internal.telephony.ModemSwitchHandler");
+            Method getActiveModemType = pf.getDeclaredMethod("getActiveModemType");
+            Object type = getActiveModemType.invoke(pf);
+            return (int)type;
+        }catch (Exception ex){
+            Log.i("zwb", "exception = " + ex.toString());
+            return MD_TYPE_LWG; //fdd-lwg
+        }
+    }
+
+    public static void reflectSetModemSelectionMode(int mode, int modemType){
+        try {
+            Object worldPhone = reflectWorldPhone();
+            Class WorldPhoneWrapper = Class.forName("com.mediatek.internal.telephony.worldphone.WorldPhoneOm");
+            Method setModemSelectionMode = WorldPhoneWrapper.getDeclaredMethod("setModemSelectionMode",
+                    int.class, int.class);
+            setModemSelectionMode.invoke(worldPhone, mode, modemType);
+        }catch (Exception ex){
+            Log.i("zwb", "exception = " + ex.toString());
         }
     }
 
