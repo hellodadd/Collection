@@ -28,13 +28,6 @@ public class MainActivity extends Activity implements OnClickListener{
         undynamic.setOnClickListener(this);
 
         Log.i("gejun","verison 1.00000");
-
-        int type = Util.reflectModemType();
-        Log.e("zwb", "zwb ----------- type = " + type);
-        Util.reflectSetModemSelectionMode(0,Util.MD_TYPE_LTG);
-        Log.e("zwb", "zwb ----------- type2 = " + Util.reflectModemType());
-        Util.reflectSetModemSelectionMode(0,Util.MD_TYPE_LWG);
-        Log.e("zwb", "zwb ----------- type3 = " + Util.reflectModemType());
     }
 
     @Override

@@ -59,6 +59,11 @@ public class OneKeyService extends Service{
 
     private int attemptFlag = 0;
 
+    private final static int EVENT_SET_GENERATION = 200;
+    private final static int EVENT_TDSCDMA_COPS = 201;
+    private final static int EVENT_GET_TDSCDMA_CELLINFO = 202;
+    private final static int EVENT_GET_TDSCDMA_NETWORKMODE = 203;
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -69,23 +74,78 @@ public class OneKeyService extends Service{
     private boolean save = true;
     @Override
     public void onCreate() {
-        Util.atCOPS(mHandler.obtainMessage(EVENT_GET_COPS));
-        Log.i("zwb","zwb --------- onCreate");
+         //Util.atCOPS(mHandler.obtainMessage(EVENT_GET_COPS));
+         //handleTDSCDMA();
+        startFDDRequst();
         super.onCreate();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Util.AtERAT(currentRat, mHandler.obtainMessage(Util.EVENT_ERAT));
+        //Util.AtERAT(currentRat, mHandler.obtainMessage(Util.EVENT_ERAT));
         if(intent.getBooleanExtra("show", false)) save = false;
-        Log.i("zwb","zwb --------- onStartCommand");
         return super.onStartCommand(intent, flags, startId);
+    }
+
+    private void handleTDSCDMA(){
+        mHandler.removeMessages(Util.EVENT_CELL_INFO);
+        mHandler.removeMessages(EVENT_COPS);
+        Util.reflectSetModemSelectionMode(0, Util.MD_TYPE_LTG);
+        Log.e("zwb", "zwb ----------- handleTDSCDMA = " + Util.reflectModemType());
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Util.invokeAT(new String[]{"AT+ERAT=1,0","+ERAT"},
+                        mHandler.obtainMessage(EVENT_SET_GENERATION));
+            }
+        }, 1000);
+
+    }
+
+    private void startFDDRequst(){
+        mHandler.removeMessages(EVENT_GET_TDSCDMA_CELLINFO);
+        Util.reflectSetModemSelectionMode(0, Util.MD_TYPE_LWG);
+        Log.i("zwb", "zwb ----------- startFDDRequst = " + Util.reflectModemType());
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Util.atCOPS(mHandler.obtainMessage(EVENT_GET_COPS));
+                Util.AtERAT(currentRat, mHandler.obtainMessage(Util.EVENT_ERAT));
+            }
+        }, 1000);
     }
 
     Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what){
+                case EVENT_SET_GENERATION:{
+                    Util.showOriginResult(msg, "zwb --- setGen");
+                    String str1 = "AT+COPS=1,2,\"46000\",2";
+                    String str2 = "+COPS";
+                    Util.invokeAT(new String[]{str1, str2},
+                            mHandler.obtainMessage(EVENT_TDSCDMA_COPS));
+                    break;
+                }
+                case EVENT_TDSCDMA_COPS:{
+                    Util.showOriginResult(msg, "zwb --- setGen cops");
+                    mHandler.sendEmptyMessage(EVENT_GET_TDSCDMA_CELLINFO);
+                    break;
+                }
+                case EVENT_GET_TDSCDMA_CELLINFO:{
+                    try {
+                        Util.getCellInfo(mHandler.obtainMessage(EVENT_GET_TDSCDMA_NETWORKMODE));
+                    } catch (Exception e){
+                        Log.i("zwb","e = "+ e.toString());
+                    }
+                    mHandler.removeMessages(EVENT_GET_TDSCDMA_CELLINFO);
+                    mHandler.sendEmptyMessageDelayed(EVENT_GET_TDSCDMA_CELLINFO, 2000);
+                    break;
+                }
+                case EVENT_GET_TDSCDMA_NETWORKMODE:{
+                    showTDSCDMAResult(msg, "EVENT_GET_TDSCDMA_NETWORKMODE");
+                    break;
+                }
                 case Util.EVENT_ERAT:{
                     Util.showOriginResult(msg, Util.ERAT);
                     //search order cmcc cu ct
@@ -139,6 +199,41 @@ public class OneKeyService extends Service{
             }
         }
     };
+
+    private void showTDSCDMAResult(Message msg, String tag){
+        String[] arr = null;
+        try {
+            Class arC = Class.forName("android.os.AsyncResult");
+            Field result = arC.getDeclaredField("result");
+            Object resultString = result.get(msg.obj);
+            if(resultString == null) return;
+            arr = (String[]) resultString;
+            for(int i =0;i<arr.length;i++){
+                Log.i("zwb","zwb --------- show Result = " + arr[i]);
+            }
+
+        } catch (Exception e){
+            Log.i("zwb","e = " + e.toString());
+        }
+        if(arr != null && !arr[0].equals("+ECELL: 0")) {
+            extraTDSCDMAData(arr);
+        }
+    }
+
+    private void extraTDSCDMAData(String[] p){
+        String o = p[0];
+        Log.i("zwb","zwb --------- extraData o = " + o);
+        String[] subItems = o.split(",");
+        String rat = subItems[1];
+        Log.i("zwb","zwb --------- extraData rat = " + rat);
+        int mnc = Integer.parseInt(subItems[5]);
+        Log.i("zwb","zwb --------- extraData mnc = " + mnc);
+        resultLists.add(o);
+        resultLists1.add(o);
+
+        //startFDDRequst();
+        endAllRequst();
+    }
 
     private void showCDMAResult(Message msg, String tag){
         String[] arr = null;
@@ -209,6 +304,11 @@ public class OneKeyService extends Service{
             }
         }
 
+        handleTDSCDMA();
+        //endAllRequst();
+    }
+
+    private void endAllRequst(){
         if(save){
             String[] fileInfo = Util.saveToXml(this, Util.parseResults(resultLists1));
             Intent it = new Intent("com.kuaikan.send_result");
@@ -234,6 +334,7 @@ public class OneKeyService extends Service{
         super.onDestroy();
         mHandler.removeMessages(Util.EVENT_CELL_INFO);
         mHandler.removeMessages(EVENT_COPS);
+        mHandler.removeMessages(EVENT_GET_TDSCDMA_CELLINFO);
         Log.i("gejun","OneKeyService onDestroy!");
     }
 
