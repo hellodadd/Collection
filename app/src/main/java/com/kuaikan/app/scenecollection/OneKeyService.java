@@ -64,6 +64,8 @@ public class OneKeyService extends Service{
     private final static int EVENT_GET_TDSCDMA_CELLINFO = 202;
     private final static int EVENT_GET_TDSCDMA_NETWORKMODE = 203;
 
+    private boolean isTDDModemStatus = false;
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -95,8 +97,12 @@ public class OneKeyService extends Service{
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                Util.invokeAT(new String[]{"AT+ERAT=1,0","+ERAT"},
-                        mHandler.obtainMessage(EVENT_SET_GENERATION));
+                //Util.invokeAT(new String[]{"AT+ERAT=1,0","+ERAT"},mHandler.obtainMessage(EVENT_SET_GENERATION));
+                currentRat = "0";
+                resultCount = 0;
+                attemptFlag = 0;
+                isTDDModemStatus = true;
+                Util.AtERAT(currentRat, mHandler.obtainMessage(Util.EVENT_ERAT));
             }
         }, 1000);
 
@@ -109,7 +115,7 @@ public class OneKeyService extends Service{
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                Util.atCOPS(mHandler.obtainMessage(EVENT_GET_COPS));
+                //Util.atCOPS(mHandler.obtainMessage(EVENT_GET_COPS));
                 Util.AtERAT(currentRat, mHandler.obtainMessage(Util.EVENT_ERAT));
             }
         }, 1000);
@@ -152,6 +158,7 @@ public class OneKeyService extends Service{
                     Log.i("zwb","zwb --------- handleMessage EVENT_ERAT resultCount = " + resultCount);
                     if(resultCount == 0){
                         Util.AtCOPS("46000", mHandler.obtainMessage(EVENT_COPS));
+                        //Util.invokeAT(new String[]{"AT+COPS=1,2,\"46000\",0", "+COPS"}, mHandler.obtainMessage(EVENT_COPS));
                     } else if(resultCount == 1){
                         Util.AtCOPS("46001", mHandler.obtainMessage(EVENT_COPS));
                     } else if(resultCount == 2){
@@ -220,6 +227,7 @@ public class OneKeyService extends Service{
         }
     }
 
+    private int countpulse = 0;
     private void extraTDSCDMAData(String[] p){
         String o = p[0];
         Log.i("zwb","zwb --------- extraData o = " + o);
@@ -231,8 +239,13 @@ public class OneKeyService extends Service{
         resultLists.add(o);
         resultLists1.add(o);
 
+        countpulse++;
+
+
         //startFDDRequst();
-        endAllRequst();
+        if(countpulse == 10) {
+            endAllRequst();
+        }
     }
 
     private void showCDMAResult(Message msg, String tag){
@@ -355,7 +368,11 @@ public class OneKeyService extends Service{
             Log.i("gejun","e = " + e.toString());
         }
         if(arr != null && !arr[0].equals("+ECELL: 0")) {
-            extraData(arr);
+            if(!isTDDModemStatus) {
+                extraData(arr);
+            }else{
+                extraDataTDModemStatus(arr);
+            }
         }
     }
 
@@ -397,6 +414,11 @@ public class OneKeyService extends Service{
             attemptFlag++;
             Log.i("zwb","zwb --------- extraData attemptFlag = " + attemptFlag);
 
+            if(attemptFlag == 10){
+                //endAllRequst();
+                //return;
+            }
+
             if(attemptFlag == 10) {
                 isOneSearch = false;
                 attemptFlag = 0;
@@ -432,6 +454,10 @@ public class OneKeyService extends Service{
         } else {
             attemptFlag++;
             if(attemptFlag == 10){
+                //endAllRequst();
+                //return;
+            }
+            if(attemptFlag == 10){
                 resultCount++;
             }
 
@@ -460,6 +486,117 @@ public class OneKeyService extends Service{
                     resultCount = 0;
                     currentRat = "0";
                     sendCDMARequest();
+                }
+            }
+        }
+    }
+
+    private void extraDataTDModemStatus(String[] p){
+        String o = p[0];
+        Log.i("zwb","zwb --------- extraData o = " + o);
+        String[] subItems = o.split(",");
+        String rat = subItems[1];
+        Log.i("zwb","zwb --------- extraData rat = " + rat);
+        int mnc = Integer.parseInt(subItems[5]);
+        Log.i("zwb","zwb --------- extraData mnc = " + mnc);
+        Log.i("zwb","zwb --------- extraData resultCount = " + resultCount);
+        Log.i("zwb","zwb --------- extraData currentRat = " + currentRat);
+        if(currentRat.equals(rat) && mnc == getMncFromResultCount(resultCount)){
+            Log.i("zwb","zwb --------- extraData isOneSearch = " + isOneSearch);
+            if(!isOneSearch){
+                resultLists.add(o);
+                resultLists1.add(o);
+                isOneSearch = true;
+            } else {
+                int count = resultLists.size();
+                Log.i("zwb","zwb --------- extraData count = " + count);
+                if(count > 0){
+                    Log.i("zwb","zwb --------- extraData resultLists.get(count - 1) = " + resultLists.get(count - 1));
+                    Log.i("zwb","zwb --------- extraData count-1 = " + getCellCount(resultLists.get(count - 1)));
+                    Log.i("zwb","zwb --------- extraData count0 = " + getCellCount(o));
+                    if(getCellCount(resultLists.get(count - 1)) < getCellCount(o)){
+                        resultLists.set(count - 1, o);
+                        resultLists1.set(count - 1, o);
+                    }
+                }
+            }
+            attemptFlag++;
+            Log.i("zwb","zwb --------- extraData attemptFlag = " + attemptFlag);
+
+            if(attemptFlag == 10){
+                //endAllRequst();
+                //return;
+            }
+
+            if(attemptFlag == 10) {
+                isOneSearch = false;
+                attemptFlag = 0;
+                resultCount++;//搜索结果加1个
+                Log.i("zwb","zwb --------- extraData 303 resultCount = " + resultCount);
+                if ((currentRat.equals("0") || currentRat.equals("2"))
+                        && resultCount < 2) {
+                    Util.AtCOPS("46001", mHandler.obtainMessage(EVENT_COPS));
+                } else if (currentRat.equals("7")) {
+                    if (resultCount < 2) {
+                        Util.AtCOPS("46001", mHandler.obtainMessage(EVENT_COPS));
+                    } else if (resultCount < 3) {
+                        Util.AtCOPS("46011", mHandler.obtainMessage(EVENT_COPS));
+                    }
+                }
+
+                Log.i("zwb","zwb --------- extraData 315 resultCount = " + currentRat);
+
+                if (currentRat.equals("0") && resultCount == 2) {
+                    resultCount = 0;
+                    currentRat = "2";
+                    Util.AtERAT("1", mHandler.obtainMessage(Util.EVENT_ERAT));
+                } else if (currentRat.equals("2") && resultCount == 2) {
+                    resultCount = 0;
+                    currentRat = "7";
+                    Util.AtERAT("3", mHandler.obtainMessage(Util.EVENT_ERAT));
+                } else if (currentRat.equals("7") && resultCount == 3) {
+                    resultCount = 0;
+                    currentRat = "0";
+                    //sendCDMARequest();
+                    endAllRequst();
+                }
+            }
+        } else {
+            attemptFlag++;
+            if(attemptFlag == 10){
+                //endAllRequst();
+                //return;
+            }
+            if(attemptFlag == 10){
+                resultCount++;
+            }
+
+            if(attemptFlag == 10) {
+                attemptFlag = 0;
+                if ((currentRat.equals("0") || currentRat.equals("2"))
+                        && resultCount < 2) {
+                    Util.AtCOPS("46001", mHandler.obtainMessage(EVENT_COPS));
+                } else if (currentRat.equals("7")) {
+                    if (resultCount < 2) {
+                        Util.AtCOPS("46001", mHandler.obtainMessage(EVENT_COPS));
+                    } else if (resultCount < 3) {
+                        Util.AtCOPS("46011", mHandler.obtainMessage(EVENT_COPS));
+                    }
+                }
+
+                if (currentRat.equals("0") && resultCount == 2) {
+                    resultCount = 0;
+                    currentRat = "2";
+                    Util.AtERAT("1", mHandler.obtainMessage(Util.EVENT_ERAT));
+                } else if (currentRat.equals("2") && resultCount == 2) {
+                    resultCount = 0;
+                    currentRat = "7";
+                    Util.AtERAT("3", mHandler.obtainMessage(Util.EVENT_ERAT));
+                } else if (currentRat.equals("7") && resultCount == 3) {
+                    resultCount = 0;
+                    currentRat = "0";
+                    //sendCDMARequest();
+                    endAllRequst();
                 }
             }
         }
