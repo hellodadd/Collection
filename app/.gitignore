@@ -35,6 +35,7 @@ captures/
 # Intellij
 *.iml
 .idea/
+.gradle/
 
 # Keystore files
 *.jks
