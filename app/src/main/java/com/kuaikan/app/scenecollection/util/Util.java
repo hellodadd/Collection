@@ -188,6 +188,20 @@ public class Util{
         }
     }
 
+    public static void reflectRadioManager(boolean onoff){
+        try {
+            Class radio = Class.forName("com.mediatek.internal.telephony.RadioManager");
+            Method method = radio.getDeclaredMethod("getInstance");
+            Object object = method.invoke(radio);
+            Method powerRadio = radio.getDeclaredMethod("setModemPower", boolean.class, int.class);
+            //for(int i = 0; i < 2; i++){
+                powerRadio.invoke(object, onoff, 3);
+            //}
+        }catch (Exception ex){
+            Log.i("zwb", "zwb exception = " + ex.toString());
+        }
+    }
+
     public static void invokeAT4CDMA(String[] atCmd, Message msg){
         try {
             Object phone = Util.reflectCDMAPhone();
