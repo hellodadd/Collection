@@ -278,6 +278,7 @@ public class OneKeyAllService extends Service{
 
         Util.reflectSetModemSelectionMode(0, currentModemType);
 
+        /*
         if(save){
             String[] fileInfo = Util.saveToXml(this, Util.parseResults(resultLists1));
             Intent it = new Intent("com.kuaikan.send_result");
@@ -286,6 +287,7 @@ public class OneKeyAllService extends Service{
             it.putExtra("file_path", fileInfo[1]);
             sendBroadcast(it);
         }
+        */
 
         Intent it = new Intent("com.kuaikan.nonsim_send_result");
         it.putStringArrayListExtra("result", resultLists);

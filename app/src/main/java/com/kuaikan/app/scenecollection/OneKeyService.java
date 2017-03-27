@@ -69,15 +69,30 @@ public class OneKeyService extends Service{
     private boolean save = true;
     @Override
     public void onCreate() {
-        Util.atCOPS(mHandler.obtainMessage(EVENT_GET_COPS));
+        //Util.atCOPS(mHandler.obtainMessage(EVENT_GET_COPS));
+        startRequstByFDD();
         super.onCreate();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Util.AtERAT(currentRat, mHandler.obtainMessage(Util.EVENT_ERAT));
+        //Util.AtERAT(currentRat, mHandler.obtainMessage(Util.EVENT_ERAT));
         if(intent.getBooleanExtra("show", false)) save = false;
         return super.onStartCommand(intent, flags, startId);
+    }
+
+    private void startRequstByFDD(){
+        int modemType = Util.reflectModemType();
+        if(modemType != Util.MD_TYPE_LWG){
+            Util.reflectSetModemSelectionMode(0, Util.MD_TYPE_LWG);
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    Util.atCOPS(mHandler.obtainMessage(EVENT_GET_COPS));
+                    Util.AtERAT(currentRat, mHandler.obtainMessage(Util.EVENT_ERAT));
+                }
+            },10000);
+        }
     }
 
     Handler mHandler = new Handler() {
@@ -220,6 +235,9 @@ public class OneKeyService extends Service{
         it.putExtra("nid", nid);
         it.putExtra("bid", bid);
         sendBroadcast(it);
+
+        mHandler.removeMessages(Util.EVENT_CELL_INFO);
+        mHandler.removeMessages(EVENT_COPS);
 
         stopSelf();
     }
