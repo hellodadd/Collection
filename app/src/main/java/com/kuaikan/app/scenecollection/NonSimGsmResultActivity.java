@@ -54,6 +54,7 @@ public class NonSimGsmResultActivity extends Activity implements OnClickListener
     private RelativeLayout bar;
 
     int whatCops;
+    int currentModem = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,7 +93,21 @@ public class NonSimGsmResultActivity extends Activity implements OnClickListener
             Util.invokeAT(new String[]{"AT+ERAT=0,0","+ERAT"}, mHandler.obtainMessage(EVENT_SET_GENERATION));
         } else if(whatCops == Util.TYPE_CMCC_TDSCDMA
                 || whatCops == Util.TYPE_CU_WCDMA){
-            Util.invokeAT(new String[]{"AT+ERAT=1,0","+ERAT"}, mHandler.obtainMessage(EVENT_SET_GENERATION));
+            if(whatCops == Util.TYPE_CMCC_TDSCDMA){
+                int modem = Util.reflectModemType();
+                currentModem = modem;
+                if(modem != Util.MD_TYPE_LTG){
+                    Util.reflectSetModemSelectionMode(0,Util.MD_TYPE_LTG);
+                    mHandler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            Util.invokeAT(new String[]{"AT+ERAT=1,0", "+ERAT"}, mHandler.obtainMessage(EVENT_SET_GENERATION));
+                        }
+                    },10000);
+                }
+            }else {
+                Util.invokeAT(new String[]{"AT+ERAT=1,0", "+ERAT"}, mHandler.obtainMessage(EVENT_SET_GENERATION));
+            }
         } else if(whatCops == Util.TYPE_CMCC_LTE
                 || whatCops == Util.TYPE_CU_LTE
                 || whatCops == Util.TYPE_TELECOM_LTE){
@@ -138,6 +153,13 @@ public class NonSimGsmResultActivity extends Activity implements OnClickListener
         super.onPause();
         Log.i("gejun","GSMResultActivity onPause remove EVENT_GET_CELLINFO");
         mHandler.removeMessages(EVENT_GET_CELLINFO);
+
+        if(whatCops == Util.TYPE_CMCC_TDSCDMA){
+            int modem = Util.reflectModemType();
+            if(currentModem != modem){
+                Util.reflectSetModemSelectionMode(0,currentModem);
+            }
+        }
     }
 
 

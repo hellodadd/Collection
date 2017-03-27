@@ -18,6 +18,7 @@ public class OpActivity extends Activity implements OnClickListener{
     private Button telecom;
     private Button gps;
     private Button oneKey;
+    private Button oneKeyAll;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,10 +35,13 @@ public class OpActivity extends Activity implements OnClickListener{
         gps.setOnClickListener(this);
         oneKey = (Button)findViewById(R.id.one_key);
         oneKey.setOnClickListener(this);
+        oneKeyAll = (Button)findViewById(R.id.one_key_all);
+        oneKeyAll.setOnClickListener(this);
 
         boolean type = getIntent().getBooleanExtra(Util.COLLECT_TYPE, false);
         gps.setVisibility(type ? View.GONE : View.VISIBLE);
         oneKey.setVisibility(type ? View.GONE : View.VISIBLE);
+        oneKeyAll.setVisibility(type ? View.GONE : View.VISIBLE);
 
         setTitle(type ? R.string.dynamic : R.string.undynamic);
     }
@@ -68,6 +72,11 @@ public class OpActivity extends Activity implements OnClickListener{
                 } else {
                     intent = new Intent(this, OneKeyActivityB.class);
                 }
+                startActivity(intent);
+                break;
+            case R.id.one_key_all:
+                intent = new Intent(this, NonSimOneKeyAllActivity.class);
+                intent.putExtra("one_key_all", true);
                 startActivity(intent);
                 break;
         }
