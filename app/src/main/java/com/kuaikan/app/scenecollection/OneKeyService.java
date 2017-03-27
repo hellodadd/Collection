@@ -92,6 +92,9 @@ public class OneKeyService extends Service{
                     Util.AtERAT(currentRat, mHandler.obtainMessage(Util.EVENT_ERAT));
                 }
             },10000);
+        }else{
+            Util.atCOPS(mHandler.obtainMessage(EVENT_GET_COPS));
+            Util.AtERAT(currentRat, mHandler.obtainMessage(Util.EVENT_ERAT));
         }
     }
 
