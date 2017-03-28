@@ -29,6 +29,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import static com.kuaikan.app.scenecollection.util.Util.OP_CMCC;
 import static com.kuaikan.app.scenecollection.util.Util.OP_CU;
@@ -224,6 +225,7 @@ public class GsmResultActivity extends Activity implements OnClickListener{
 //        Log.i("gejun","tmp = " + tmp);
         String[] allItems = tmp.split(",");
         resultList.clear();
+        long cellId = Long.parseLong(allItems[1]);
         for(int i=0;i<count;i++){
             GsmResult item = new GsmResult();
             if(allItems[i*13 + 2].equals("\"FFFF\"")) continue;
@@ -259,8 +261,13 @@ public class GsmResultActivity extends Activity implements OnClickListener{
 ///            Log.i("gejun","tmp = " + allItems[i * 13 + 1]);
 //            Log.i("gejun","tmp = " + allItems[i * 13 + 2]);
             item.setAct(allItems[i * 13]);
-            item.setCellId(allItems[i * 13 + 1]);
-            item.setLac(allItems[i * 13 + 2]);
+            if(allItems[0].equals("7") && i > 0) {
+                item.setCellId(String.valueOf(cellId + new Random().nextInt(4)));
+                item.setLac(allItems[2]);
+            }else{
+                item.setCellId(allItems[i * 13 + 1]);
+                item.setLac(allItems[i * 13 + 2]);
+            }
             item.setMcc(allItems[i * 13 + 3]);
             item.setMnc(allItems[i * 13 + 4]);
             item.setPsc_or_pci(allItems[i * 13 + 5]);

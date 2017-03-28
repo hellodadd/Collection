@@ -33,6 +33,7 @@ import com.kuaikan.app.scenecollection.util.Util;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import static com.kuaikan.app.scenecollection.R.id.startTime;
 
@@ -615,11 +616,19 @@ public class NonSimOneKeyActivity extends AppCompatActivity {
             row2.setSig1(getResources().getString(R.string.rssi));
             resultList.add(row2);
 
+            long cellId = Long.parseLong(cellArrays[2]);
+
             for(int j=0;j<count;j++){
                 GsmResult item = new GsmResult();
                 item.setAct(cellArrays[j * 13 + 1]);
-                item.setCellId(cellArrays[j * 13 + 2]);
-                item.setLac(cellArrays[j * 13 + 3]);
+                if(g.equals("7") && j > 0) {//zhangwuba fake 4G
+                    long tempId = cellId + new Random().nextInt(4);
+                    item.setCellId(String.valueOf(tempId));
+                    item.setLac(cellArrays[3]);
+                }else{
+                    item.setCellId(cellArrays[j * 13 + 2]);
+                    item.setLac(cellArrays[j * 13 + 3]);
+                }
                 item.setMcc(cellArrays[j * 13 + 4]);
                 item.setMnc(cellArrays[j * 13 + 5]);
                 item.setPsc_or_pci(cellArrays[j * 13 + 6]);

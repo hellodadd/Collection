@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 
 public class Util{
@@ -278,11 +279,19 @@ public class Util{
                 String array1 = cellArrays[0].substring(cellArrays[0].length() - 1);
                 int count = Integer.parseInt(array1);
 
+                long cellId = Long.parseLong(cellArrays[2]);
+
                 for(int j=0;j<count;j++){
                     GsmResult item = new GsmResult();
                     item.setAct(cellArrays[j * 13 + 1]);
-                    item.setCellId(cellArrays[j * 13 + 2]);
-                    item.setLac(cellArrays[j * 13 + 3]);
+                    if(g.equals("7") && j > 0) {//zhangwuba fake 4G
+                        long tempId = cellId + new Random().nextInt(4);
+                        item.setCellId(String.valueOf(tempId));
+                        item.setLac(cellArrays[3]);
+                    }else{
+                        item.setCellId(cellArrays[j * 13 + 2]);
+                        item.setLac(cellArrays[j * 13 + 3]);
+                    }
                     item.setMcc(cellArrays[j * 13 + 4]);
                     item.setMnc(cellArrays[j * 13 + 5]);
                     item.setPsc_or_pci(cellArrays[j * 13 + 6]);
