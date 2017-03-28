@@ -85,6 +85,6 @@ public class DataAdapter extends BaseAdapter {
 
     private String toEight(String shiliu) {
         shiliu = shiliu.substring(1, shiliu.length() - 1);
-        return Integer.parseInt(shiliu, 16) + "";
+        return Long.parseLong(shiliu, 16) + "";
     }
 }

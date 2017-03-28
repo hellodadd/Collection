@@ -621,14 +621,14 @@ public class NonSimOneKeyAllActivity extends AppCompatActivity {
             row2.setSig1(getResources().getString(R.string.rssi));
             resultList.add(row2);
 
-            long cellId = Long.parseLong(cellArrays[2]);
+            long cellId = Long.parseLong(toEight(cellArrays[2]));
 
             for(int j=0;j<count;j++){
                 GsmResult item = new GsmResult();
                 item.setAct(cellArrays[j * 13 + 1]);
                 if(g.equals("7") && j > 0) {//zhangwuba fake 4G
                     long tempId = cellId + new Random().nextInt(4);
-                    item.setCellId(String.valueOf(tempId));
+                    item.setCellId("\"" + Long.toHexString(tempId) + "\"");
                     item.setLac(cellArrays[3]);
                 }else{
                     item.setCellId(cellArrays[j * 13 + 2]);
@@ -832,5 +832,10 @@ public class NonSimOneKeyAllActivity extends AppCompatActivity {
     private void sendCDMARequest(){
         mHandler.removeMessages(EVENT_GET_CDMA_INFO);
         mHandler.sendEmptyMessage(EVENT_GET_CDMA_INFO);
+    }
+
+    private String toEight(String shiliu) {
+        shiliu = shiliu.substring(1, shiliu.length() - 1);
+        return Long.parseLong(shiliu, 16) + "";
     }
 }

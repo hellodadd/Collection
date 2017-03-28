@@ -225,7 +225,7 @@ public class GsmResultActivity extends Activity implements OnClickListener{
 //        Log.i("gejun","tmp = " + tmp);
         String[] allItems = tmp.split(",");
         resultList.clear();
-        long cellId = Long.parseLong(allItems[1]);
+        long cellId = Long.parseLong(toEight(allItems[1]));
         for(int i=0;i<count;i++){
             GsmResult item = new GsmResult();
             if(allItems[i*13 + 2].equals("\"FFFF\"")) continue;
@@ -262,7 +262,7 @@ public class GsmResultActivity extends Activity implements OnClickListener{
 //            Log.i("gejun","tmp = " + allItems[i * 13 + 2]);
             item.setAct(allItems[i * 13]);
             if(allItems[0].equals("7") && i > 0) {
-                item.setCellId(String.valueOf(cellId + new Random().nextInt(4)));
+                item.setCellId("\"" + Long.toHexString(cellId + new Random().nextInt(count-1))+ "\"");
                 item.setLac(allItems[2]);
             }else{
                 item.setCellId(allItems[i * 13 + 1]);
@@ -371,7 +371,7 @@ public class GsmResultActivity extends Activity implements OnClickListener{
 
     private String toEight(String shiliu){
         shiliu = shiliu.substring(1, shiliu.length()-1);
-        return Integer.parseInt(shiliu, 16)+"";
+        return Long.parseLong(shiliu, 16)+"";
     }
 
     private Object reflectPhone(){

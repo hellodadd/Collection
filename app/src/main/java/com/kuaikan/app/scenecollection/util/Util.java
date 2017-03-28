@@ -279,14 +279,17 @@ public class Util{
                 String array1 = cellArrays[0].substring(cellArrays[0].length() - 1);
                 int count = Integer.parseInt(array1);
 
-                long cellId = Long.parseLong(cellArrays[2]);
+                Log.e("gej" ,"gej ---- currentCell = " + currentCell);
+
+                long cellId = Long.parseLong(toEight(cellArrays[2]));
+                Log.e("gej" ,"gej ---- cellId = " + cellArrays[2]);
 
                 for(int j=0;j<count;j++){
                     GsmResult item = new GsmResult();
                     item.setAct(cellArrays[j * 13 + 1]);
                     if(g.equals("7") && j > 0) {//zhangwuba fake 4G
-                        long tempId = cellId + new Random().nextInt(4);
-                        item.setCellId(String.valueOf(tempId));
+                        long tempId = cellId + new Random().nextInt(count - 1);
+                        item.setCellId("\"" + Long.toHexString(tempId) + "\"");
                         item.setLac(cellArrays[3]);
                     }else{
                         item.setCellId(cellArrays[j * 13 + 2]);
@@ -475,7 +478,7 @@ public class Util{
 
     public static String toEight(String shiliu) {
         shiliu = shiliu.substring(1, shiliu.length() - 1);
-        return Integer.parseInt(shiliu, 16) + "";
+        return Long.parseLong(shiliu, 16) + "";
     }
 
     public static void fillItem(XmlSerializer serializer, String key, String value){
@@ -564,4 +567,5 @@ public class Util{
         }
         invokeAT(new String[]{"AT+COPS=1,2,\""+mccmnc+"\"", COPS}, msg);
     }
+
 }
