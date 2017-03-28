@@ -1,6 +1,5 @@
 package com.kuaikan.app.scenecollection;
 
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -8,13 +7,17 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -33,9 +36,14 @@ import java.util.List;
 
 import static com.kuaikan.app.scenecollection.R.id.startTime;
 
-public class NonSimOneKeyActivity extends Activity{
+/**
+ * Created by server on 17-3-27.
+ */
 
-    private RelativeLayout bar;
+public class NonSimOneKeyActivity extends AppCompatActivity {
+
+
+    private ProgressBar bar;
     private ListView list1;
     private ListView list2;
     private ListView list3;
@@ -97,10 +105,14 @@ public class NonSimOneKeyActivity extends Activity{
 
     private long onekeyStart;
 
+    private boolean isSearchEnd = false;
+    private ImageView saveBtn;
+    private TextView toolbar_title;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.one_key);
+        supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
+        setContentView(R.layout.one_key_all);
         Log.i("gejun","onCreate savedInstanceState = " + savedInstanceState);
         if(savedInstanceState != null){
 //            opList = savedInstanceState.getIntegerArrayList("ops");
@@ -128,8 +140,26 @@ public class NonSimOneKeyActivity extends Activity{
         list7 = (ListView) findViewById(R.id.list7);
         list8 = (ListView) findViewById(R.id.list8);
 
-        bar = (RelativeLayout) findViewById(R.id.progress);
+        bar = (ProgressBar) findViewById(R.id.progress);
         sv = (ScrollView) findViewById(R.id.sv);
+        saveBtn = (ImageView)findViewById(R.id.toolbar_right_button);
+        saveBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(isSearchEnd) {
+                    Util.saveToXml(NonSimOneKeyActivity.this, totalList);
+                }else{
+                    Toast.makeText(NonSimOneKeyActivity.this,
+                            R.string.none_info, Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+        toolbar_title = (TextView)findViewById(R.id.toolbar_title);
+        if(isSearchEnd){
+            toolbar_title.setText(getResources().getString(R.string.search_end));
+        }else{
+            toolbar_title.setText(getResources().getString(R.string.search_ing));
+        }
 
         start = (TextView) findViewById(startTime);
         start.setText(Util.getTime(onekeyStart));
@@ -196,6 +226,7 @@ public class NonSimOneKeyActivity extends Activity{
         it.setPackage("com.kuaikan.app.scenecollection");
         it.setAction("com.kuaikan.nonsim_one_key");
         it.putExtra("show", true);
+        it.putExtra("is_show_now", true);
         startService(it);
     }
 
@@ -512,8 +543,11 @@ public class NonSimOneKeyActivity extends Activity{
 
     private void showList(){
         mHandler.removeMessages(EVENT_GET_CELLINFO);
-        bar.setVisibility(View.GONE);
-        end.setText(Util.getTime(System.currentTimeMillis()));
+        if(isSearchEnd) {
+            bar.setVisibility(View.GONE);
+            toolbar_title.setText(getResources().getString(R.string.search_end));
+            end.setText(Util.getTime(System.currentTimeMillis()));
+        }
         sv.scrollTo(0, 0);
 
         saved.clear();
@@ -768,6 +802,7 @@ public class NonSimOneKeyActivity extends Activity{
                 sid = intent.getStringExtra("sid");
                 bid = intent.getStringExtra("bid");
                 nid = intent.getStringExtra("nid");
+                isSearchEnd = intent.getBooleanExtra("all_search_end", false);
                 showList();
             }
         }

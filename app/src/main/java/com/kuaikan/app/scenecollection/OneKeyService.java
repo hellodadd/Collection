@@ -67,6 +67,9 @@ public class OneKeyService extends Service{
 
     private final static int EVENT_GET_COPS = 99;
     private boolean save = true;
+
+    private boolean isShowNow = false;
+
     @Override
     public void onCreate() {
         //Util.atCOPS(mHandler.obtainMessage(EVENT_GET_COPS));
@@ -78,6 +81,9 @@ public class OneKeyService extends Service{
     public int onStartCommand(Intent intent, int flags, int startId) {
         //Util.AtERAT(currentRat, mHandler.obtainMessage(Util.EVENT_ERAT));
         if(intent.getBooleanExtra("show", false)) save = false;
+        if(intent.getBooleanExtra("is_show_now", false)){
+            isShowNow = true;
+        }
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -237,12 +243,23 @@ public class OneKeyService extends Service{
         it.putExtra("sid", sid);
         it.putExtra("nid", nid);
         it.putExtra("bid", bid);
+        it.putExtra("all_search_end",true);
         sendBroadcast(it);
 
         mHandler.removeMessages(Util.EVENT_CELL_INFO);
         mHandler.removeMessages(EVENT_COPS);
 
         stopSelf();
+    }
+
+    private void endRequst(){
+        Intent it = new Intent("com.kuaikan.nonsim_send_result");
+        it.putStringArrayListExtra("result", resultLists);
+        it.putStringArrayListExtra("cdma_result", cdmaResultList);
+        it.putExtra("sid", sid);
+        it.putExtra("nid", nid);
+        it.putExtra("bid", bid);
+        sendBroadcast(it);
     }
 
     @Override
@@ -304,6 +321,9 @@ public class OneKeyService extends Service{
                 isOneSearch = false;
                 attemptFlag = 0;
                 resultCount++;//ËÑË÷½á¹û¼Ó1¸ö
+                if(isShowNow){
+                    endRequst();
+                }
                 if ((currentRat.equals("0") || currentRat.equals("2"))
                         && resultCount < 2) {
                     Util.AtCOPS("46001", mHandler.obtainMessage(EVENT_COPS));

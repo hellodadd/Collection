@@ -62,7 +62,7 @@ public class RetrieveXmlActivity extends Activity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.one_key);
+        setContentView(R.layout.one_key_xml);
 
         list1 = (ListView) findViewById(R.id.list1);
         list2 = (ListView) findViewById(R.id.list2);
@@ -73,7 +73,7 @@ public class RetrieveXmlActivity extends Activity {
         list7 = (ListView) findViewById(R.id.list7);
         list8 = (ListView) findViewById(R.id.list8);
 
-        findViewById(R.id.progress).setVisibility(View.GONE);
+        //findViewById(R.id.progress).setVisibility(View.GONE);
         findViewById(R.id.startTime_layout).setVisibility(View.GONE);
         findViewById(R.id.endTime_layout).setVisibility(View.GONE);
         sv = (ScrollView) findViewById(R.id.sv);
