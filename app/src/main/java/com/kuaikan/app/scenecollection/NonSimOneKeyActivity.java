@@ -620,7 +620,7 @@ public class NonSimOneKeyActivity extends AppCompatActivity {
 
             for(int j=0;j<count;j++){
                 GsmResult item = new GsmResult();
-                item.setAct(cellArrays[j * 13 + 1]);
+                item.setAct(cellArrays[1]);//cellArrays[j * 13 + 1]
                 if(g.equals("7") && j > 0) {//zhangwuba fake 4G
                     long tempId = cellId + new Random().nextInt(count - 1);
                     item.setCellId("\"" + Long.toHexString(tempId) + "\"");
@@ -629,8 +629,8 @@ public class NonSimOneKeyActivity extends AppCompatActivity {
                     item.setCellId(cellArrays[j * 13 + 2]);
                     item.setLac(cellArrays[j * 13 + 3]);
                 }
-                item.setMcc(cellArrays[j * 13 + 4]);
-                item.setMnc(cellArrays[j * 13 + 5]);
+                item.setMcc(cellArrays[4]);//cellArrays[j * 13 + 4]
+                item.setMnc(cellArrays[5]);//cellArrays[j * 13 + 5]
                 item.setPsc_or_pci(cellArrays[j * 13 + 6]);
                 item.setSig1(cellArrays[j * 13 + 7]);
                 item.setSig2(cellArrays[j * 13 + 8]);

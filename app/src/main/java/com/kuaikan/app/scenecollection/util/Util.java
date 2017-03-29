@@ -279,24 +279,26 @@ public class Util{
                 String array1 = cellArrays[0].substring(cellArrays[0].length() - 1);
                 int count = Integer.parseInt(array1);
 
-                Log.e("gej" ,"gej ---- currentCell = " + currentCell);
+                //Log.e("gej" ,"gej ---- currentCell = " + currentCell);
 
                 long cellId = Long.parseLong(toEight(cellArrays[2]));
-                Log.e("gej" ,"gej ---- cellId = " + cellArrays[2]);
+                //Log.e("gej" ,"gej ---- cellId = " + cellArrays[2] + " count = " + count + " rat = " + g);
 
                 for(int j=0;j<count;j++){
                     GsmResult item = new GsmResult();
-                    item.setAct(cellArrays[j * 13 + 1]);
+                    item.setAct(cellArrays[1]);
+                    //Log.e("gej" ,"gej ---- act = " + cellArrays[j * 13 + 1]);
                     if(g.equals("7") && j > 0) {//zhangwuba fake 4G
                         long tempId = cellId + new Random().nextInt(count - 1);
+                        //Log.e("gej" ,"gej ---- tempId = " + tempId + " j = " + j);
                         item.setCellId("\"" + Long.toHexString(tempId) + "\"");
                         item.setLac(cellArrays[3]);
                     }else{
                         item.setCellId(cellArrays[j * 13 + 2]);
                         item.setLac(cellArrays[j * 13 + 3]);
                     }
-                    item.setMcc(cellArrays[j * 13 + 4]);
-                    item.setMnc(cellArrays[j * 13 + 5]);
+                    item.setMcc(cellArrays[4]);//cellArrays[j * 13 + 4]
+                    item.setMnc(cellArrays[5]);//cellArrays[j * 13 + 5]
                     item.setPsc_or_pci(cellArrays[j * 13 + 6]);
                     item.setSig1(cellArrays[j * 13 + 7]);
                     item.setSig2(cellArrays[j * 13 + 8]);
@@ -382,6 +384,7 @@ public class Util{
 
             for (Result item : cellInfos) {
                 if(item instanceof GsmResult){
+                    //Log.e("gej", "gej ------ item = " + ((GsmResult) item).getLac() + " act = " + ((GsmResult) item).getAct());
                     saveGsm(serializer, (GsmResult) item);
                 } else if(item instanceof  CdmaResult){
                     saveCDMA(serializer, (CdmaResult)item);

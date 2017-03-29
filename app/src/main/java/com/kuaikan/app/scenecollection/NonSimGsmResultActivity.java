@@ -317,7 +317,7 @@ public class NonSimGsmResultActivity extends Activity implements OnClickListener
             }
 ///            Log.i("gejun","tmp = " + allItems[i * 13 + 1]);
 //            Log.i("gejun","tmp = " + allItems[i * 13 + 2]);
-            item.setAct(allItems[i * 13]);
+            item.setAct(allItems[0]);//cellArrays[j * 13]
             if(allItems[0].equals("7") && i > 0) {
                 //Log.e("gej","gej ----- cell id = " + cellId);
                 item.setCellId("\"" + Long.toHexString(cellId + new Random().nextInt(count-1))+ "\"");
@@ -326,8 +326,8 @@ public class NonSimGsmResultActivity extends Activity implements OnClickListener
                 item.setCellId(allItems[i * 13 + 1]);
                 item.setLac(allItems[i * 13 + 2]);
             }
-            item.setMcc(allItems[i * 13 + 3]);
-            item.setMnc(allItems[i * 13 + 4]);
+            item.setMcc(allItems[3]);//cellArrays[j * 13 + 3]
+            item.setMnc(allItems[4]);//cellArrays[j * 13 + 4]
             item.setPsc_or_pci(allItems[i * 13 + 5]);
             item.setSig1(allItems[i * 13 + 6]);
             item.setSig1_in_dbm(allItems[i * 13 + 8]);
