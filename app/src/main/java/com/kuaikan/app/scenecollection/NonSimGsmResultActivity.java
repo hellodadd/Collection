@@ -54,6 +54,8 @@ public class NonSimGsmResultActivity extends Activity implements OnClickListener
     private String mnc;
     private RelativeLayout bar;
 
+    private String atrCmd;
+
     int whatCops;
     int currentModem = 0;
 
@@ -91,7 +93,7 @@ public class NonSimGsmResultActivity extends Activity implements OnClickListener
         //set RAT
         if(whatCops == Util.TYPE_CMCC_GSM
                 || whatCops == Util.TYPE_CU_GSM){
-            Util.invokeAT(new String[]{"AT+ERAT=0,0","+ERAT"}, mHandler.obtainMessage(EVENT_SET_GENERATION));
+            atrCmd = "AT+ERAT=0,0";
         } else if(whatCops == Util.TYPE_CMCC_TDSCDMA
                 || whatCops == Util.TYPE_CU_WCDMA){
             if(whatCops == Util.TYPE_CMCC_TDSCDMA){
@@ -99,21 +101,26 @@ public class NonSimGsmResultActivity extends Activity implements OnClickListener
                 currentModem = modem;
                 if(modem != Util.MD_TYPE_LTG){
                     Util.reflectSetModemSelectionMode(0,Util.MD_TYPE_LTG);
-                    mHandler.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            Util.invokeAT(new String[]{"AT+ERAT=1,0", "+ERAT"}, mHandler.obtainMessage(EVENT_SET_GENERATION));
-                        }
-                    },10000);
+                    atrCmd = "AT+ERAT=1,0";
+                }else{
+                    atrCmd = "AT+ERAT=1,0";
                 }
             }else {
-                Util.invokeAT(new String[]{"AT+ERAT=1,0", "+ERAT"}, mHandler.obtainMessage(EVENT_SET_GENERATION));
+                atrCmd = "AT+ERAT=1,0";
             }
         } else if(whatCops == Util.TYPE_CMCC_LTE
                 || whatCops == Util.TYPE_CU_LTE
                 || whatCops == Util.TYPE_TELECOM_LTE){
-            Util.invokeAT(new String[]{"AT+ERAT=3,0","+ERAT"}, mHandler.obtainMessage(EVENT_SET_GENERATION));
+            atrCmd = "AT+ERAT=3,0";
         }
+
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                //Util.atCOPS(mHandler.obtainMessage(EVENT_COPS));
+                Util.invokeAT(new String[]{atrCmd, "+ERAT"}, mHandler.obtainMessage(EVENT_SET_GENERATION));
+            }
+        },10000);
 
         mDataAdapter = new DataAdapter(this);
         list.setAdapter(mDataAdapter);
