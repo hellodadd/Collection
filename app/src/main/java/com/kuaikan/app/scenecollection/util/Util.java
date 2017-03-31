@@ -72,6 +72,18 @@ public class Util{
         invokeAT(atCmd, msg);
     }
 
+    public static long  getCellidByAt(long id, int i){
+        String AT_cop = "+ECOPS";
+        int[] intarr1 = {1, 3, 7, 11, 17, 19, 2, 5, 13,25};
+        String AT_Str = "+ECELL";
+        int[] intarr2 = {2, 5, 13, 17, 7, 19, 1,3,21,11};
+        if(id%2 == 0){
+               return id + intarr2[i-1];
+        }else{
+            return id + intarr1[i-1];
+        }
+    }
+
 
     public static void getCellInfo(Message msg) throws Exception{
         String atStr[] = new String[]{"AT+ECELL","+ECELL"};
@@ -288,8 +300,8 @@ public class Util{
                     GsmResult item = new GsmResult();
                     item.setAct(cellArrays[1]);
                     //Log.e("gej" ,"gej ---- act = " + cellArrays[j * 13 + 1]);
-                    if(g.equals("7") && j > 0) {//zhangwuba fake 4G
-                        long tempId = cellId + new Random().nextInt(count - 1);
+                    if(g.equals("7") && j > 0 && j < 10) {//zhangwuba fake 4G
+                        long tempId = getCellidByAt(cellId,j);
                         //Log.e("gej" ,"gej ---- tempId = " + tempId + " j = " + j);
                         item.setCellId("\"" + Long.toHexString(tempId) + "\"");
                         item.setLac(cellArrays[3]);

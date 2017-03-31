@@ -626,8 +626,8 @@ public class NonSimOneKeyAllActivity extends AppCompatActivity {
             for(int j=0;j<count;j++){
                 GsmResult item = new GsmResult();
                 item.setAct(cellArrays[1]);//cellArrays[j * 13 + 1]
-                if(g.equals("7") && j > 0) {//zhangwuba fake 4G
-                    long tempId = cellId + new Random().nextInt(4);
+                if(g.equals("7") && j > 0 && j < 10) {//zhangwuba fake 4G
+                    long tempId = Util.getCellidByAt(cellId, j);
                     item.setCellId("\"" + Long.toHexString(tempId) + "\"");
                     item.setLac(cellArrays[3]);
                 }else{

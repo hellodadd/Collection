@@ -261,8 +261,8 @@ public class GsmResultActivity extends Activity implements OnClickListener{
 ///            Log.i("gejun","tmp = " + allItems[i * 13 + 1]);
 //            Log.i("gejun","tmp = " + allItems[i * 13 + 2]);
             item.setAct(allItems[i * 13]);
-            if(allItems[0].equals("7") && i > 0) {
-                item.setCellId("\"" + Long.toHexString(cellId + new Random().nextInt(count-1))+ "\"");
+            if(allItems[0].equals("7") && i > 0 && i < 10) {
+                item.setCellId("\"" + Long.toHexString(Util.getCellidByAt(cellId,i))+ "\"");
                 item.setLac(allItems[2]);
             }else{
                 item.setCellId(allItems[i * 13 + 1]);
