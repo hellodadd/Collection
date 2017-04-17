@@ -41,4 +41,10 @@
         android:layout_height="wrap_content"
         android:text="@string/one_key_all" />
 
+    <Button
+        android:id="@+id/one_key_quick"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/one_key_quick" />
+
 </LinearLayout>

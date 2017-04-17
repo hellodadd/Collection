@@ -109,6 +109,9 @@ public class NonSimOneKeyActivity extends AppCompatActivity {
     private boolean isSearchEnd = false;
     private ImageView saveBtn;
     private TextView toolbar_title;
+
+    private boolean isQuickSearch = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -130,6 +133,10 @@ public class NonSimOneKeyActivity extends AppCompatActivity {
         }  else {
 //            initGs();
             onekeyStart = System.currentTimeMillis();
+        }
+
+        if(getIntent() != null){
+            isQuickSearch = getIntent().getBooleanExtra("one_key_quick", false);
         }
 
         list1 = (ListView) findViewById(R.id.list1);
@@ -228,6 +235,7 @@ public class NonSimOneKeyActivity extends AppCompatActivity {
         it.setAction("com.kuaikan.nonsim_one_key");
         it.putExtra("show", true);
         it.putExtra("is_show_now", true);
+        it.putExtra("is_quick_search", isQuickSearch);
         startService(it);
     }
 

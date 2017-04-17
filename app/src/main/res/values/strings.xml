@@ -25,6 +25,7 @@
     <string name="gps">GPS</string>
     <string name="one_key">一键采集</string>
     <string name="one_key_all">一键采集(含移动3G)</string>
+    <string name="one_key_quick">快速采集</string>
 
     <string name="lac">LAC</string>
     <string name="cell_id">CELLID</string>

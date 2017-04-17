@@ -69,6 +69,7 @@ public class OneKeyService extends Service{
     private boolean save = true;
 
     private boolean isShowNow = false;
+    private boolean isQuickSearch = false;
 
     @Override
     public void onCreate() {
@@ -83,6 +84,10 @@ public class OneKeyService extends Service{
         if(intent.getBooleanExtra("show", false)) save = false;
         if(intent.getBooleanExtra("is_show_now", false)){
             isShowNow = true;
+        }
+
+        if(intent.getBooleanExtra("is_quick_search",false)){
+            isQuickSearch = true;
         }
         return super.onStartCommand(intent, flags, startId);
     }
@@ -195,6 +200,7 @@ public class OneKeyService extends Service{
     String vlocinfo="";
     private void extraData1(String[] o){
         if(o.length == 0) return;
+        int repeatTime = isQuickSearch ? 2 : 10;
         if(o[0].startsWith("+VLOCINFO")){
             String[] info1 = o[0].split(",");
             mcc = info1[1];
@@ -215,12 +221,12 @@ public class OneKeyService extends Service{
         if(o[2].split(",")[1].equals("0")){
             mHandler.sendEmptyMessage(EVENT_GET_CDMA_INFO);
             cdmaCount++;
-            if(cdmaCount < 10) return;
+            if(cdmaCount < repeatTime) return;
         }
         Log.i("gejun","************save result*************");
         mHandler.removeMessages(EVENT_GET_CDMA_INFO);
         resultLists1.add(vlocinfo);
-        if(cdmaCount != 10) {
+        if(cdmaCount != repeatTime) {
             cdmaResult = o;
             for (int i = 0; i < o.length; i++) {
                 cdmaResultList.add(o[i]);
@@ -308,6 +314,7 @@ public class OneKeyService extends Service{
         String[] subItems = o.split(",");
         String rat = subItems[1];
         int mnc = Integer.parseInt(subItems[5]);
+        int repeatTime = 10;
         if(currentRat.equals(rat) && mnc == getMncFromResultCount(resultCount)){
             if(!isOneSearch){
                 resultLists.add(o);
@@ -324,7 +331,7 @@ public class OneKeyService extends Service{
             }
             attemptFlag++;
 
-            if(attemptFlag == 10) {
+            if(attemptFlag == repeatTime || isQuickSearch) {
                 isOneSearch = false;
                 attemptFlag = 0;
                 resultCount++;//ËÑË÷½á¹û¼Ó1¸ö
@@ -358,11 +365,11 @@ public class OneKeyService extends Service{
             }
         } else {
             attemptFlag++;
-            if(attemptFlag == 10){
+            if(attemptFlag == repeatTime){
                 resultCount++;
             }
 
-            if(attemptFlag == 10) {
+            if(attemptFlag == repeatTime) {
                 attemptFlag = 0;
                 if ((currentRat.equals("0") || currentRat.equals("2"))
                         && resultCount < 2) {
