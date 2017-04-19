@@ -86,9 +86,20 @@ public class OneKeyService extends Service{
             isShowNow = true;
         }
 
+        if(Util.getSystemPropertiesBoolean(this,"persist.collection.complete",false)){
+            isQuickSearch = true;
+        }
+
         if(intent.getBooleanExtra("is_quick_search",false)){
             isQuickSearch = true;
         }
+
+        if(intent.getBooleanExtra("is_all_search",false)){
+            isQuickSearch = false;
+        }
+
+        Log.d("zwb","zwb -------- isQuickSearch = " + isQuickSearch);
+
         return super.onStartCommand(intent, flags, startId);
     }
 

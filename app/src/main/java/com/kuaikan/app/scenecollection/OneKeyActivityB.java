@@ -15,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -35,7 +36,7 @@ import static com.kuaikan.app.scenecollection.R.id.startTime;
 
 public class OneKeyActivityB extends Activity{
 
-    private RelativeLayout bar;
+    private ProgressBar bar;
     private ListView list1;
     private ListView list2;
     private ListView list3;
@@ -128,7 +129,7 @@ public class OneKeyActivityB extends Activity{
         list7 = (ListView) findViewById(R.id.list7);
         list8 = (ListView) findViewById(R.id.list8);
 
-        bar = (RelativeLayout) findViewById(R.id.progress);
+        bar = (ProgressBar) findViewById(R.id.progress);
         sv = (ScrollView) findViewById(R.id.sv);
 
         start = (TextView) findViewById(startTime);

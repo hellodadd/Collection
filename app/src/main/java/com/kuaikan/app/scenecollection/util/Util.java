@@ -583,4 +583,27 @@ public class Util{
         invokeAT(new String[]{"AT+COPS=1,2,\""+mccmnc+"\"", COPS}, msg);
     }
 
+    public static boolean getSystemPropertiesBoolean(Context context, String key, boolean def) {
+        boolean ret = def;
+        try {
+            ClassLoader cl = context.getClassLoader();
+            Class SystemProperties = cl.loadClass("android.os.SystemProperties");
+
+            Class[] paramTypes = new Class[2];
+            paramTypes[0] = String.class;
+            paramTypes[1] = boolean.class;
+
+            Method getInt = SystemProperties.getMethod("getBoolean", paramTypes);
+
+            Object[] params = new Object[2];
+            params[0] = new String(key);
+            params[1] = new Boolean(def);
+
+            ret = (boolean) getInt.invoke(SystemProperties, params);
+        } catch (Exception e) {
+            ret = def;
+        }
+        return ret;
+    }
+
 }

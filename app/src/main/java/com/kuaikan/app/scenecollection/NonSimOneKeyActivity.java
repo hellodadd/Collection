@@ -111,6 +111,7 @@ public class NonSimOneKeyActivity extends AppCompatActivity {
     private TextView toolbar_title;
 
     private boolean isQuickSearch = false;
+    private boolean isSearchAll = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -236,6 +237,9 @@ public class NonSimOneKeyActivity extends AppCompatActivity {
         it.putExtra("show", true);
         it.putExtra("is_show_now", true);
         it.putExtra("is_quick_search", isQuickSearch);
+        if(!isQuickSearch) {
+            it.putExtra("is_all_search", true);
+        }
         startService(it);
     }
 
