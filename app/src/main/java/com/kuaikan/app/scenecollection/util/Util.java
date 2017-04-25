@@ -284,6 +284,26 @@ public class Util{
         }
     }
 
+    public static void invokeAT(Context contexts, String[] atCmd, Message msg){
+        try {
+            if(getPhoneCount(contexts) == 2) {
+                for(int i= 0; i < 2; i++){
+                    Object phone = Util.reflectPhone(i);
+                    Class pf = Class.forName("com.android.internal.telephony.Phone");
+                    Method m = pf.getDeclaredMethod("invokeOemRilRequestStrings", new Class[]{String[].class, Message.class});
+                    m.invoke(phone, new Object[]{atCmd, msg});
+                }
+            }else{
+                Object phone = Util.reflectPhone();
+                Class pf = Class.forName("com.android.internal.telephony.Phone");
+                Method m = pf.getDeclaredMethod("invokeOemRilRequestStrings", new Class[]{String[].class, Message.class});
+                m.invoke(phone, new Object[]{atCmd, msg});
+            }
+        } catch (Exception e){
+            Log.i("gejun","e = " + e.toString());
+        }
+    }
+
     public static void invokeSetPreferredNetworkType(int type, Message msg){
         try {
             Object phone = Util.reflectPhone();

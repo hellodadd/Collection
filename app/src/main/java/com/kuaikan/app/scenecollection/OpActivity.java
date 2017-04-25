@@ -20,6 +20,8 @@ public class OpActivity extends Activity implements OnClickListener{
     private Button oneKey;
     private Button oneKeyAll;
     private Button OneKeyQuick;
+    private Button Off;
+    private Button On;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +50,11 @@ public class OpActivity extends Activity implements OnClickListener{
         OneKeyQuick.setVisibility(type ? View.GONE : View.VISIBLE);
 
         setTitle(type ? R.string.dynamic : R.string.undynamic);
+
+        Off = (Button)findViewById(R.id.cfun_button_0);
+        Off.setOnClickListener(this);
+        On = (Button)findViewById(R.id.cfun_button_1);
+        On.setOnClickListener(this);
     }
 
     public void onClick(View arg0) {
@@ -55,7 +62,7 @@ public class OpActivity extends Activity implements OnClickListener{
         Intent intent;
         switch(id){
             case R.id.cu:
-                Util.invokeAT(new String[]{"AT+EBTSAP=0", "+EBTSAP"},
+                Util.invokeAT(this,new String[]{"AT+EBTSAP=0", "+EBTSAP"},
                         mHandler.obtainMessage(EVENT_EBTSAP));
                 intent = new Intent(this, CuActivity.class);
                 startActivity(intent);
@@ -69,7 +76,7 @@ public class OpActivity extends Activity implements OnClickListener{
                 startActivity(intent);
                 break;
             case R.id.gps:
-                Util.invokeAT(new String[]{"AT+EBTSAP=1", "+EBTSAP"},
+                Util.invokeAT(this,new String[]{"AT+EBTSAP=1", "+EBTSAP"},
                         mHandler.obtainMessage(EVENT_EBTSAP));
                // intent = new Intent(this, GPSActivity.class);
                // startActivity(intent);
@@ -92,6 +99,16 @@ public class OpActivity extends Activity implements OnClickListener{
                 intent.putExtra("one_key_quick", true);
                 startActivity(intent);
                 break;
+            case R.id.cfun_button_0:{
+                Util.invokeAT(new String[]{"AT+CFUN=0", "+CFUN"},
+                        mHandler.obtainMessage(EVENT_CFUN_0));
+                break;
+            }
+            case R.id.cfun_button_1:{
+                Util.invokeAT(new String[]{"AT+CFUN=1", "+CFUN"},
+                        mHandler.obtainMessage(EVENT_CFUN_1));
+                break;
+            }
         }
     }
 
@@ -103,6 +120,8 @@ public class OpActivity extends Activity implements OnClickListener{
 
     private static final int EVENT_COPS = 0;
     private static final int EVENT_EBTSAP = 1;
+    private static final int EVENT_CFUN_0 = 2;
+    private static final int EVENT_CFUN_1 = 3;
 
     Handler mHandler = new Handler() {
         @Override
@@ -114,6 +133,14 @@ public class OpActivity extends Activity implements OnClickListener{
                 }
                 case EVENT_EBTSAP:{
                     Util.showOriginResult(msg, "ebtsap");
+                    break;
+                }
+                case EVENT_CFUN_0:{
+                    Util.showOriginResult(msg, "cfun_0");
+                    break;
+                }
+                case EVENT_CFUN_1:{
+                    Util.showOriginResult(msg, "cfun_1");
                     break;
                 }
             }

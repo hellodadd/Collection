@@ -47,4 +47,17 @@
         android:layout_height="wrap_content"
         android:text="@string/one_key_quick" />
 
+    <Button
+        android:id="@+id/cfun_button_0"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="off" />
+
+    <Button
+        android:id="@+id/cfun_button_1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="on" />
+
+
 </LinearLayout>

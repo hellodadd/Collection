@@ -91,9 +91,11 @@ public class NonSimGsmResultActivity extends Activity implements OnClickListener
     public void onResume() {
         super.onResume();
         //set RAT
+        int type = -1;
         if(whatCops == Util.TYPE_CMCC_GSM
                 || whatCops == Util.TYPE_CU_GSM){
             atrCmd = "AT+ERAT=0,0";
+            type = 1;
         } else if(whatCops == Util.TYPE_CMCC_TDSCDMA
                 || whatCops == Util.TYPE_CU_WCDMA){
             if(whatCops == Util.TYPE_CMCC_TDSCDMA){
@@ -108,19 +110,20 @@ public class NonSimGsmResultActivity extends Activity implements OnClickListener
             }else {
                 atrCmd = "AT+ERAT=1,0";
             }
+            type = 2;
         } else if(whatCops == Util.TYPE_CMCC_LTE
                 || whatCops == Util.TYPE_CU_LTE
                 || whatCops == Util.TYPE_TELECOM_LTE){
             atrCmd = "AT+ERAT=3,0";
+            type = 11;
         }
 
-        mHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                //Util.atCOPS(mHandler.obtainMessage(EVENT_COPS));
-                Util.invokeAT(new String[]{atrCmd, "+ERAT"}, mHandler.obtainMessage(EVENT_SET_GENERATION));
-            }
-        },10000);
+        Util.invokeAT(this,new String[]{"AT+EBTSAP=0", "+EBTSAP"},
+                mHandler.obtainMessage(EVENT_EBTSAP));
+
+        //Util.invokeAT(new String[]{atrCmd, "+ERAT"}, mHandler.obtainMessage(EVENT_SET_GENERATION));
+        //Util.setSettingsPutInt(this, getContentResolver(), "preferred_network_mode1", type);
+        //Util.invokeSetPreferredNetworkType(type, mHandler.obtainMessage(EVENT_SET_GENERATION));
 
         mDataAdapter = new DataAdapter(this);
         list.setAdapter(mDataAdapter);
@@ -162,6 +165,9 @@ public class NonSimGsmResultActivity extends Activity implements OnClickListener
         Log.i("gejun","GSMResultActivity onPause remove EVENT_GET_CELLINFO");
         mHandler.removeMessages(EVENT_GET_CELLINFO);
 
+        Util.invokeAT(this,new String[]{"AT+EBTSAP=1", "+EBTSAP"},
+                mHandler.obtainMessage(EVENT_EBTSAP_ON));
+
         if(whatCops == Util.TYPE_CMCC_TDSCDMA){
             int modem = Util.reflectModemType();
             if(currentModem != modem){
@@ -184,6 +190,8 @@ public class NonSimGsmResultActivity extends Activity implements OnClickListener
     private static final int EVENT_GET_RSSI = 3;
     private static final int EVENT_GET_CELLINFO = 4;
     private static final int EVENT_COPS = 5;
+    private static final int EVENT_EBTSAP = 6;
+    private static final int EVENT_EBTSAP_ON = 7;
 
 
     private void setGeneration(String[] atCmd){
@@ -210,6 +218,11 @@ public class NonSimGsmResultActivity extends Activity implements OnClickListener
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what){
+                case EVENT_EBTSAP:{
+                    Util.invokeAT(new String[]{atrCmd, "+ERAT"},
+                            mHandler.obtainMessage(EVENT_SET_GENERATION));
+                    break;
+                }
                 case EVENT_SET_GENERATION:{
                     Util.showOriginResult(msg, "ERAT");
                     //set COPS
