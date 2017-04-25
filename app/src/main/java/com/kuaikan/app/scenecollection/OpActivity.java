@@ -55,6 +55,8 @@ public class OpActivity extends Activity implements OnClickListener{
         Intent intent;
         switch(id){
             case R.id.cu:
+                Util.invokeAT(new String[]{"AT+EBTSAP=0", "+EBTSAP"},
+                        mHandler.obtainMessage(EVENT_EBTSAP));
                 intent = new Intent(this, CuActivity.class);
                 startActivity(intent);
                 break;
@@ -67,8 +69,10 @@ public class OpActivity extends Activity implements OnClickListener{
                 startActivity(intent);
                 break;
             case R.id.gps:
-                intent = new Intent(this, GPSActivity.class);
-                startActivity(intent);
+                Util.invokeAT(new String[]{"AT+EBTSAP=1", "+EBTSAP"},
+                        mHandler.obtainMessage(EVENT_EBTSAP));
+               // intent = new Intent(this, GPSActivity.class);
+               // startActivity(intent);
                 break;
             case R.id.one_key:
                 if(Util.NON_SIM){
@@ -98,6 +102,7 @@ public class OpActivity extends Activity implements OnClickListener{
     }
 
     private static final int EVENT_COPS = 0;
+    private static final int EVENT_EBTSAP = 1;
 
     Handler mHandler = new Handler() {
         @Override
@@ -105,6 +110,10 @@ public class OpActivity extends Activity implements OnClickListener{
             switch (msg.what){
                 case EVENT_COPS:{
                     Util.showOriginResult(msg, "getCOPS");
+                    break;
+                }
+                case EVENT_EBTSAP:{
+                    Util.showOriginResult(msg, "ebtsap");
                     break;
                 }
             }

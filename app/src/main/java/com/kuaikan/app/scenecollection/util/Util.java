@@ -1,5 +1,6 @@
 package com.kuaikan.app.scenecollection.util;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Message;
@@ -121,11 +122,41 @@ public class Util{
         return t1;
     }
 
+    public static int getPhoneCount(Context context){
+        String mSimConfig = getSystemPropertiesString(context,"persist.radio.multisim.config");
+        if("dsds".equals(mSimConfig) || "dsda".equals(mSimConfig)){
+            return 2;
+        }
+        return 1;
+    }
+
     public static Object reflectPhone(){
         try {
             Class pf = Class.forName("com.android.internal.telephony.PhoneFactory");
             Method getPhone = pf.getDeclaredMethod("getDefaultPhone");
             Object phone1 = getPhone.invoke(pf);
+
+            Class LteDcPhoneProxyC = Class.forName("com.mediatek.internal.telephony.ltedc.LteDcPhoneProxy");
+            Object phone2 = LteDcPhoneProxyC.cast(phone1);
+
+            Method getLtePhoneM = LteDcPhoneProxyC.getDeclaredMethod("getLtePhone");
+            Object phone3 = getLtePhoneM.invoke(phone2);
+//            Log.i("gejun", "phone1 = " + phone1);
+//            Log.i("gejun", "phone2 = " + phone2);
+//            Log.i("gejun", "phone3 = " + phone3);
+
+            return phone3;
+        }catch (Exception exception){
+            Log.i("gejun","exception = " + exception.toString());
+            return null;
+        }
+    }
+
+    public static Object reflectPhone(int simID){
+        try {
+            Class pf = Class.forName("com.android.internal.telephony.PhoneFactory");
+            Method getPhone = pf.getDeclaredMethod("getPhone", int.class);
+            Object phone1 = getPhone.invoke(pf, simID);
 
             Class LteDcPhoneProxyC = Class.forName("com.mediatek.internal.telephony.ltedc.LteDcPhoneProxy");
             Object phone2 = LteDcPhoneProxyC.cast(phone1);
@@ -247,6 +278,18 @@ public class Util{
             Class pf = Class.forName("com.android.internal.telephony.Phone");
             Method m = pf.getDeclaredMethod("invokeOemRilRequestStrings", new Class[]{String[].class, Message.class});
             m.invoke(phone, new Object[]{atCmd, msg});
+//            Log.e("gejun", "[Util][invokeAT] atCmd: "+ Arrays.toString(atCmd));
+        } catch (Exception e){
+            Log.i("gejun","e = " + e.toString());
+        }
+    }
+
+    public static void invokeSetPreferredNetworkType(int type, Message msg){
+        try {
+            Object phone = Util.reflectPhone();
+            Class pf = Class.forName("com.android.internal.telephony.Phone");
+            Method m = pf.getDeclaredMethod("setPreferredNetworkType", new Class[]{int.class, Message.class});
+            m.invoke(phone, new Object[]{type, msg});
 //            Log.e("gejun", "[Util][invokeAT] atCmd: "+ Arrays.toString(atCmd));
         } catch (Exception e){
             Log.i("gejun","e = " + e.toString());
@@ -532,7 +575,7 @@ public class Util{
             Class arC = Class.forName("android.os.AsyncResult");
             Field result = arC.getDeclaredField("result");
             Field exception = arC.getDeclaredField("exception");
-            Log.i("gejun","exception = " + exception.get(msg.obj));
+            Log.i("gejun","exception = " + tag + "----" + exception.get(msg.obj));
             Object resultString = result.get(msg.obj);
             if(resultString == null) return;
             String[] arr = (String[]) resultString;
@@ -540,7 +583,7 @@ public class Util{
                 Log.i("gejun",tag + i + ":" + arr[i]);
             }
         } catch (Exception e){
-            Log.i("gejun","e = " + e.toString());
+            Log.i("gejun","e = " + tag + "----" + e.toString());
         }
     }
 
@@ -604,6 +647,43 @@ public class Util{
             ret = def;
         }
         return ret;
+    }
+
+    public static String getSystemPropertiesString(Context context, String key) {
+        String ret = "unknow";
+        try {
+            ClassLoader cl = context.getClassLoader();
+            Class SystemProperties = cl.loadClass("android.os.SystemProperties");
+
+            Class[] paramTypes = new Class[1];
+            paramTypes[0] = String.class;
+            //paramTypes[1] = boolean.class;
+
+            Method get = SystemProperties.getMethod("get", paramTypes);
+
+            Object[] params = new Object[1];
+            params[0] = new String(key);
+            //params[1] = new Boolean(def);
+
+            ret = (String) get.invoke(SystemProperties, params);
+        } catch (Exception e) {
+            ret = "unknow";
+        }
+        return ret;
+    }
+
+    public static void setSettingsPutInt(Context context,ContentResolver resolver, String name , int value){
+        try {
+            ClassLoader cl = context.getClassLoader();
+            Class settings = cl.loadClass("android.provider.Settings$Global");
+
+            Method putInt = settings.getMethod("putInt",  new Class[]{ContentResolver.class, String.class,int.class});
+
+            putInt.invoke(settings, resolver, name, value);
+
+        }catch (Exception e){
+            Log.i("gejun","e = " + e.toString());
+        }
     }
 
 }
