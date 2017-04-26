@@ -92,6 +92,7 @@ public class NonSimGsmResultActivity extends Activity implements OnClickListener
         super.onResume();
         //set RAT
         int type = -1;
+        boolean tdsdcma = false;
         if(whatCops == Util.TYPE_CMCC_GSM
                 || whatCops == Util.TYPE_CU_GSM){
             atrCmd = "AT+ERAT=0,0";
@@ -101,9 +102,19 @@ public class NonSimGsmResultActivity extends Activity implements OnClickListener
             if(whatCops == Util.TYPE_CMCC_TDSCDMA){
                 int modem = Util.reflectModemType();
                 currentModem = modem;
+                Log.d("gejun","gejun  ----currentModem----- " + currentModem);
                 if(modem != Util.MD_TYPE_LTG){
+                    tdsdcma = true;
                     Util.reflectSetModemSelectionMode(0,Util.MD_TYPE_LTG);
-                    atrCmd = "AT+ERAT=1,0";
+                    mHandler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            atrCmd = "AT+ERAT=1,0";
+                            /*Util.invokeAT(NonSimGsmResultActivity.this, new String[]{"AT+EBTSAP=0", "+EBTSAP"},
+                                    mHandler.obtainMessage(EVENT_EBTSAP));*/
+                            Util.invokeAT(new String[]{atrCmd, "+ERAT"}, mHandler.obtainMessage(EVENT_SET_GENERATION));
+                        }
+                    },10000);
                 }else{
                     atrCmd = "AT+ERAT=1,0";
                 }
@@ -118,8 +129,10 @@ public class NonSimGsmResultActivity extends Activity implements OnClickListener
             type = 11;
         }
 
-        Util.invokeAT(this,new String[]{"AT+EBTSAP=0", "+EBTSAP"},
-                mHandler.obtainMessage(EVENT_EBTSAP));
+        if(!tdsdcma) {
+            Util.invokeAT(this, new String[]{"AT+EBTSAP=0", "+EBTSAP"},
+                    mHandler.obtainMessage(EVENT_EBTSAP));
+        }
 
         //Util.invokeAT(new String[]{atrCmd, "+ERAT"}, mHandler.obtainMessage(EVENT_SET_GENERATION));
         //Util.setSettingsPutInt(this, getContentResolver(), "preferred_network_mode1", type);
@@ -219,8 +232,14 @@ public class NonSimGsmResultActivity extends Activity implements OnClickListener
         public void handleMessage(Message msg) {
             switch (msg.what){
                 case EVENT_EBTSAP:{
-                    Util.invokeAT(new String[]{atrCmd, "+ERAT"},
-                            mHandler.obtainMessage(EVENT_SET_GENERATION));
+                    Util.showOriginResult(msg, "+EBTSAP");
+                    mHandler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            Util.invokeAT(new String[]{atrCmd, "+ERAT"},
+                                    mHandler.obtainMessage(EVENT_SET_GENERATION));
+                        }
+                    }, 10000);
                     break;
                 }
                 case EVENT_SET_GENERATION:{

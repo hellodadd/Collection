@@ -4,6 +4,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Message;
+import android.telephony.SubscriptionManager;
 import android.util.Log;
 import android.util.Xml;
 import android.view.View;
@@ -120,6 +121,72 @@ public class Util{
         Date d1=new Date(time);
         String t1=format.format(d1);
         return t1;
+    }
+
+    public static int[] getSubId(int slotId){
+        int[] subId;
+        try {
+            Class pf = Class.forName("android.telephony.SubscriptionManager");
+            Method getSubId = pf.getDeclaredMethod("getSubId", int.class);
+
+            subId = (int[]) getSubId.invoke(pf,slotId);
+
+
+            return subId;
+        }catch (Exception exception){
+            Log.i("gejun","exception = " + exception.toString());
+            return null;
+        }
+    }
+
+    public static boolean isValidSubscriptionId(int subId) {
+        boolean ret = false;
+        try {
+            Class pf = Class.forName("android.telephony.SubscriptionManager");
+            Method getSubId = pf.getDeclaredMethod("isValidSubscriptionId", int.class);
+
+            ret = (boolean) getSubId.invoke(pf,subId);
+
+            return ret;
+        }catch (Exception exception){
+            Log.i("gejun","exception = " + exception.toString());
+            return ret;
+        }
+    }
+
+    public static boolean isSim1Insert(){
+        int[] subId = getSubId(0);
+        if (subId != null) {
+            for (int i = 0; i < subId.length; i++) {
+                Log.i("gejun", "subId[" + i + "]: " + subId[i]);
+            }
+        }
+        if (subId == null || subId.length == 0
+                || isValidSubscriptionId(subId[0])) {
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean isSim2Insert(){
+        int[] subId = getSubId(1);
+        if (subId != null) {
+            for (int i = 0; i < subId.length; i++) {
+                Log.i("gejun", "subId[" + i + "]: " + subId[i]);
+            }
+        }
+        if (subId == null || subId.length == 0
+                || isValidSubscriptionId(subId[0])) {
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean isSimInsert(){
+        if(isSim1Insert() || isSim2Insert()){
+            return true;
+        }
+        return false;
     }
 
     public static int getPhoneCount(Context context){

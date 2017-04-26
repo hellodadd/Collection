@@ -77,9 +77,9 @@ public class OneKeyService extends Service{
     @Override
     public void onCreate() {
         //Util.atCOPS(mHandler.obtainMessage(EVENT_GET_COPS));
-        Util.invokeAT(this,new String[]{"AT+EBTSAP=0", "+EBTSAP"},
-                mHandler.obtainMessage(EVENT_EBTSAP));
-        //startRequstByFDD();
+        /*Util.invokeAT(this,new String[]{"AT+EBTSAP=0", "+EBTSAP"},
+                mHandler.obtainMessage(EVENT_EBTSAP));*/
+        startRequstByFDD();
         super.onCreate();
     }
 
@@ -120,6 +120,7 @@ public class OneKeyService extends Service{
                 }
             },10000);
         }else{
+            Log.d("gejun","zwb -------- startRequstByFDD ");
             Util.atCOPS(mHandler.obtainMessage(EVENT_GET_COPS));
             Util.AtERAT(currentRat, mHandler.obtainMessage(Util.EVENT_ERAT));
         }
@@ -130,6 +131,7 @@ public class OneKeyService extends Service{
         public void handleMessage(Message msg) {
             switch (msg.what){
                 case EVENT_EBTSAP:{
+                    Util.showOriginResult(msg, "EVENT_EBTSAP");
                     startRequstByFDD();
                     break;
                 }
@@ -146,7 +148,7 @@ public class OneKeyService extends Service{
                     break;
                 }
                 case EVENT_COPS:{
-                    //Util.showOriginResult(msg, Util.COPS);
+                    Util.showOriginResult(msg, Util.COPS);
                     //get cellinfo
                     try {
                         Util.getCellInfo(mHandler.obtainMessage(Util.EVENT_CELL_INFO));
@@ -294,8 +296,8 @@ public class OneKeyService extends Service{
         mHandler.removeMessages(Util.EVENT_CELL_INFO);
         mHandler.removeMessages(EVENT_COPS);
 
-        Util.invokeAT(this,new String[]{"AT+EBTSAP=1", "+EBTSAP"},
-                mHandler.obtainMessage(EVENT_EBTSAP_ON));
+       /* Util.invokeAT(this,new String[]{"AT+EBTSAP=1", "+EBTSAP"},
+                mHandler.obtainMessage(EVENT_EBTSAP_ON));*/
 
         Log.i("gejun","OneKeyService onDestroy!");
     }

@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -105,7 +106,7 @@ public class OpActivity extends Activity implements OnClickListener{
                 break;
             }
             case R.id.cfun_button_1:{
-                Util.invokeAT(new String[]{"AT+CFUN=1", "+CFUN"},
+                Util.invokeAT(new String[]{"AT+CPON", "+CPON"},
                         mHandler.obtainMessage(EVENT_CFUN_1));
                 break;
             }
@@ -115,13 +116,35 @@ public class OpActivity extends Activity implements OnClickListener{
     @Override
     protected void onResume() {
         super.onResume();
-        Util.atCOPS(mHandler.obtainMessage(EVENT_COPS));
+        int modem = Util.reflectModemType();
+        Log.d("gejun","gejun --------- modem = " + modem);
+        if(modem == Util.MD_TYPE_LTG){
+            Util.reflectSetModemSelectionMode(0, Util.MD_TYPE_LWG);
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    Util.invokeAT(new String[]{"AT+EPBSE=10,1,5,480","+EPBSE"},
+                            mHandler.obtainMessage(EVENT_EPBSE));
+                    Util.invokeAT4CDMA(new String[]{"AT+ECBAND=0","+ECBAND"},
+                            mHandler.obtainMessage(EVENT_ECBAND));
+                    Util.atCOPS(mHandler.obtainMessage(EVENT_COPS));
+                }
+            },10000);
+        }else {
+            Util.invokeAT(new String[]{"AT+EPBSE=10,1,5,480","+EPBSE"},
+                    mHandler.obtainMessage(EVENT_EPBSE));
+            Util.invokeAT4CDMA(new String[]{"AT+ECBAND=0","+ECBAND"},
+                    mHandler.obtainMessage(EVENT_ECBAND));
+            Util.atCOPS(mHandler.obtainMessage(EVENT_COPS));
+        }
     }
 
     private static final int EVENT_COPS = 0;
     private static final int EVENT_EBTSAP = 1;
     private static final int EVENT_CFUN_0 = 2;
     private static final int EVENT_CFUN_1 = 3;
+    private static final int EVENT_EPBSE = 4;
+    private static final int EVENT_ECBAND = 5;
 
     Handler mHandler = new Handler() {
         @Override
@@ -141,6 +164,14 @@ public class OpActivity extends Activity implements OnClickListener{
                 }
                 case EVENT_CFUN_1:{
                     Util.showOriginResult(msg, "cfun_1");
+                    break;
+                }
+                case EVENT_EPBSE:{
+                    Util.showOriginResult(msg, "EPBSE");
+                    break;
+                }
+                case EVENT_ECBAND:{
+                    Util.showOriginResult(msg, "ECBAND");
                     break;
                 }
             }
