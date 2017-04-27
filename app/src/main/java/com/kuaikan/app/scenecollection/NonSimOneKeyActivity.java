@@ -216,11 +216,6 @@ public class NonSimOneKeyActivity extends AppCompatActivity {
         mDataAdapter8.setData(result8);
         list8.setAdapter(mDataAdapter8);
 
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(ACTION_GET_CURRENT_SIM);
-        filter.addAction(ACTION_SEARCH_OVER);
-        filter.addAction("com.kuaikan.nonsim_send_result");
-        registerReceiver(mReceiver, filter);
 
 //        Util.startSetOPService(this, "get_current_siminfo");
     }
@@ -255,6 +250,12 @@ public class NonSimOneKeyActivity extends AppCompatActivity {
     public void onResume() {
         super.onResume();
         startOneKeyService();
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(ACTION_GET_CURRENT_SIM);
+        filter.addAction(ACTION_SEARCH_OVER);
+        filter.addAction("com.kuaikan.nonsim_send_result");
+        registerReceiver(mReceiver, filter);
 
         /*if(opList.size() < 2) {
             mHandler.removeMessages(EVENT_GET_CELLINFO);

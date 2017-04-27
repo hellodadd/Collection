@@ -1,10 +1,8 @@
 package com.kuaikan.app.scenecollection.util;
 
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Message;
-import android.telephony.SubscriptionManager;
 import android.util.Log;
 import android.util.Xml;
 import android.view.View;
@@ -123,107 +121,11 @@ public class Util{
         return t1;
     }
 
-    public static int[] getSubId(int slotId){
-        int[] subId;
-        try {
-            Class pf = Class.forName("android.telephony.SubscriptionManager");
-            Method getSubId = pf.getDeclaredMethod("getSubId", int.class);
-
-            subId = (int[]) getSubId.invoke(pf,slotId);
-
-
-            return subId;
-        }catch (Exception exception){
-            Log.i("gejun","exception = " + exception.toString());
-            return null;
-        }
-    }
-
-    public static boolean isValidSubscriptionId(int subId) {
-        boolean ret = false;
-        try {
-            Class pf = Class.forName("android.telephony.SubscriptionManager");
-            Method getSubId = pf.getDeclaredMethod("isValidSubscriptionId", int.class);
-
-            ret = (boolean) getSubId.invoke(pf,subId);
-
-            return ret;
-        }catch (Exception exception){
-            Log.i("gejun","exception = " + exception.toString());
-            return ret;
-        }
-    }
-
-    public static boolean isSim1Insert(){
-        int[] subId = getSubId(0);
-        if (subId != null) {
-            for (int i = 0; i < subId.length; i++) {
-                Log.i("gejun", "subId[" + i + "]: " + subId[i]);
-            }
-        }
-        if (subId == null || subId.length == 0
-                || isValidSubscriptionId(subId[0])) {
-            return false;
-        }
-        return true;
-    }
-
-    public static boolean isSim2Insert(){
-        int[] subId = getSubId(1);
-        if (subId != null) {
-            for (int i = 0; i < subId.length; i++) {
-                Log.i("gejun", "subId[" + i + "]: " + subId[i]);
-            }
-        }
-        if (subId == null || subId.length == 0
-                || isValidSubscriptionId(subId[0])) {
-            return false;
-        }
-        return true;
-    }
-
-    public static boolean isSimInsert(){
-        if(isSim1Insert() || isSim2Insert()){
-            return true;
-        }
-        return false;
-    }
-
-    public static int getPhoneCount(Context context){
-        String mSimConfig = getSystemPropertiesString(context,"persist.radio.multisim.config");
-        if("dsds".equals(mSimConfig) || "dsda".equals(mSimConfig)){
-            return 2;
-        }
-        return 1;
-    }
-
     public static Object reflectPhone(){
         try {
             Class pf = Class.forName("com.android.internal.telephony.PhoneFactory");
             Method getPhone = pf.getDeclaredMethod("getDefaultPhone");
             Object phone1 = getPhone.invoke(pf);
-
-            Class LteDcPhoneProxyC = Class.forName("com.mediatek.internal.telephony.ltedc.LteDcPhoneProxy");
-            Object phone2 = LteDcPhoneProxyC.cast(phone1);
-
-            Method getLtePhoneM = LteDcPhoneProxyC.getDeclaredMethod("getLtePhone");
-            Object phone3 = getLtePhoneM.invoke(phone2);
-//            Log.i("gejun", "phone1 = " + phone1);
-//            Log.i("gejun", "phone2 = " + phone2);
-//            Log.i("gejun", "phone3 = " + phone3);
-
-            return phone3;
-        }catch (Exception exception){
-            Log.i("gejun","exception = " + exception.toString());
-            return null;
-        }
-    }
-
-    public static Object reflectPhone(int simID){
-        try {
-            Class pf = Class.forName("com.android.internal.telephony.PhoneFactory");
-            Method getPhone = pf.getDeclaredMethod("getPhone", int.class);
-            Object phone1 = getPhone.invoke(pf, simID);
 
             Class LteDcPhoneProxyC = Class.forName("com.mediatek.internal.telephony.ltedc.LteDcPhoneProxy");
             Object phone2 = LteDcPhoneProxyC.cast(phone1);
@@ -345,38 +247,6 @@ public class Util{
             Class pf = Class.forName("com.android.internal.telephony.Phone");
             Method m = pf.getDeclaredMethod("invokeOemRilRequestStrings", new Class[]{String[].class, Message.class});
             m.invoke(phone, new Object[]{atCmd, msg});
-//            Log.e("gejun", "[Util][invokeAT] atCmd: "+ Arrays.toString(atCmd));
-        } catch (Exception e){
-            Log.i("gejun","e = " + e.toString());
-        }
-    }
-
-    public static void invokeAT(Context contexts, String[] atCmd, Message msg){
-        try {
-            if(getPhoneCount(contexts) == 2) {
-                for(int i= 0; i < 2; i++){
-                    Object phone = Util.reflectPhone(i);
-                    Class pf = Class.forName("com.android.internal.telephony.Phone");
-                    Method m = pf.getDeclaredMethod("invokeOemRilRequestStrings", new Class[]{String[].class, Message.class});
-                    m.invoke(phone, new Object[]{atCmd, msg});
-                }
-            }else{
-                Object phone = Util.reflectPhone();
-                Class pf = Class.forName("com.android.internal.telephony.Phone");
-                Method m = pf.getDeclaredMethod("invokeOemRilRequestStrings", new Class[]{String[].class, Message.class});
-                m.invoke(phone, new Object[]{atCmd, msg});
-            }
-        } catch (Exception e){
-            Log.i("gejun","e = " + e.toString());
-        }
-    }
-
-    public static void invokeSetPreferredNetworkType(int type, Message msg){
-        try {
-            Object phone = Util.reflectPhone();
-            Class pf = Class.forName("com.android.internal.telephony.Phone");
-            Method m = pf.getDeclaredMethod("setPreferredNetworkType", new Class[]{int.class, Message.class});
-            m.invoke(phone, new Object[]{type, msg});
 //            Log.e("gejun", "[Util][invokeAT] atCmd: "+ Arrays.toString(atCmd));
         } catch (Exception e){
             Log.i("gejun","e = " + e.toString());
@@ -662,7 +532,7 @@ public class Util{
             Class arC = Class.forName("android.os.AsyncResult");
             Field result = arC.getDeclaredField("result");
             Field exception = arC.getDeclaredField("exception");
-            Log.i("gejun","exception = " + tag + "----" + exception.get(msg.obj));
+            Log.i("gejun","exception = " + exception.get(msg.obj));
             Object resultString = result.get(msg.obj);
             if(resultString == null) return;
             String[] arr = (String[]) resultString;
@@ -670,7 +540,7 @@ public class Util{
                 Log.i("gejun",tag + i + ":" + arr[i]);
             }
         } catch (Exception e){
-            Log.i("gejun","e = " + tag + "----" + e.toString());
+            Log.i("gejun","e = " + e.toString());
         }
     }
 
@@ -757,20 +627,6 @@ public class Util{
             ret = "unknow";
         }
         return ret;
-    }
-
-    public static void setSettingsPutInt(Context context,ContentResolver resolver, String name , int value){
-        try {
-            ClassLoader cl = context.getClassLoader();
-            Class settings = cl.loadClass("android.provider.Settings$Global");
-
-            Method putInt = settings.getMethod("putInt",  new Class[]{ContentResolver.class, String.class,int.class});
-
-            putInt.invoke(settings, resolver, name, value);
-
-        }catch (Exception e){
-            Log.i("gejun","e = " + e.toString());
-        }
     }
 
 }
