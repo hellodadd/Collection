@@ -249,7 +249,9 @@ public class NonSimOneKeyActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        startOneKeyService();
+        if(!isSearchEnd) {
+            startOneKeyService();
+        }
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(ACTION_GET_CURRENT_SIM);
@@ -273,6 +275,7 @@ public class NonSimOneKeyActivity extends AppCompatActivity {
         unregisterReceiver(mReceiver);
         stopOneKeyService();
     }
+
 
     private static final int EVENT_SET_GENERATION = 0;
     private static final int EVENT_SET_OP = 1;

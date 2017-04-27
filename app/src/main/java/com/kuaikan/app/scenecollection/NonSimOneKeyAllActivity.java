@@ -242,7 +242,9 @@ public class NonSimOneKeyAllActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        startOneKeyService();
+        if(!isSearchEnd) {
+            startOneKeyService();
+        }
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(ACTION_GET_CURRENT_SIM);
