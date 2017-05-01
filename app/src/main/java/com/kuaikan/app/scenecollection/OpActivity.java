@@ -56,6 +56,8 @@ public class OpActivity extends Activity implements OnClickListener{
         Off.setOnClickListener(this);
         On = (Button)findViewById(R.id.cfun_button_1);
         On.setOnClickListener(this);
+        Off.setVisibility(View.GONE);
+        On.setVisibility(View.GONE);
     }
 
     public void onClick(View arg0) {
@@ -63,8 +65,6 @@ public class OpActivity extends Activity implements OnClickListener{
         Intent intent;
         switch(id){
             case R.id.cu:
-                Util.invokeAT(this,new String[]{"AT+EBTSAP=0", "+EBTSAP"},
-                        mHandler.obtainMessage(EVENT_EBTSAP));
                 intent = new Intent(this, CuActivity.class);
                 startActivity(intent);
                 break;
@@ -77,10 +77,8 @@ public class OpActivity extends Activity implements OnClickListener{
                 startActivity(intent);
                 break;
             case R.id.gps:
-                Util.invokeAT(this,new String[]{"AT+EBTSAP=1", "+EBTSAP"},
-                        mHandler.obtainMessage(EVENT_EBTSAP));
-               // intent = new Intent(this, GPSActivity.class);
-               // startActivity(intent);
+                intent = new Intent(this, GPSActivity.class);
+                startActivity(intent);
                 break;
             case R.id.one_key:
                 if(Util.NON_SIM){
@@ -101,13 +99,13 @@ public class OpActivity extends Activity implements OnClickListener{
                 startActivity(intent);
                 break;
             case R.id.cfun_button_0:{
-                Util.invokeAT(new String[]{"AT+CFUN=0", "+CFUN"},
-                        mHandler.obtainMessage(EVENT_CFUN_0));
+                Util.invokeAT(this,new String[]{"AT+EBTSAP=0", "+EBTSAP"},
+                        mHandler.obtainMessage(EVENT_EBTSAP));
                 break;
             }
             case R.id.cfun_button_1:{
-                Util.invokeAT(new String[]{"AT+CPON", "+CPON"},
-                        mHandler.obtainMessage(EVENT_CFUN_1));
+                Util.invokeAT(this,new String[]{"AT+EBTSAP=1", "+EBTSAP"},
+                        mHandler.obtainMessage(EVENT_EBTSAP));
                 break;
             }
         }

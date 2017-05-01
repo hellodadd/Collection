@@ -682,6 +682,7 @@ public class Util{
     public static final int EVENT_ERAT = 1;
     public static final int EVENT_COPS = 2;
 
+
     public static final String ERAT = "+ERAT";
     public static final String ECELL = "+ECELL";
     public static final String COPS = "+COPS";

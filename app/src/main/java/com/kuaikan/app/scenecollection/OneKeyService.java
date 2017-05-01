@@ -66,19 +66,16 @@ public class OneKeyService extends Service{
     }
 
     private final static int EVENT_GET_COPS = 99;
+    public static final int EVENT_EPBSE = 200;
+    public static final int EVENT_ECBAND = 201;
     private boolean save = true;
 
     private boolean isShowNow = false;
     private boolean isQuickSearch = false;
 
-    private final static int EVENT_EBTSAP = 200;
-    private final static int EVENT_EBTSAP_ON = 201;
-
     @Override
     public void onCreate() {
         //Util.atCOPS(mHandler.obtainMessage(EVENT_GET_COPS));
-        /*Util.invokeAT(this,new String[]{"AT+EBTSAP=0", "+EBTSAP"},
-                mHandler.obtainMessage(EVENT_EBTSAP));*/
         startRequstByFDD();
         super.onCreate();
     }
@@ -115,26 +112,29 @@ public class OneKeyService extends Service{
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
+                    resetModemBand();
                     Util.atCOPS(mHandler.obtainMessage(EVENT_GET_COPS));
                     Util.AtERAT(currentRat, mHandler.obtainMessage(Util.EVENT_ERAT));
                 }
             },10000);
         }else{
-            Log.d("gejun","zwb -------- startRequstByFDD ");
+            resetModemBand();
             Util.atCOPS(mHandler.obtainMessage(EVENT_GET_COPS));
             Util.AtERAT(currentRat, mHandler.obtainMessage(Util.EVENT_ERAT));
         }
+    }
+
+    private void resetModemBand(){
+        Util.invokeAT(new String[]{"AT+EPBSE=10,1,5,480","+EPBSE"},
+                mHandler.obtainMessage(EVENT_EPBSE));
+        Util.invokeAT4CDMA(new String[]{"AT+ECBAND=0","+ECBAND"},
+                mHandler.obtainMessage(EVENT_ECBAND));
     }
 
     Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what){
-                case EVENT_EBTSAP:{
-                    Util.showOriginResult(msg, "EVENT_EBTSAP");
-                    startRequstByFDD();
-                    break;
-                }
                 case Util.EVENT_ERAT:{
                     Util.showOriginResult(msg, Util.ERAT);
                     //search order cmcc cu ct
@@ -148,7 +148,7 @@ public class OneKeyService extends Service{
                     break;
                 }
                 case EVENT_COPS:{
-                    Util.showOriginResult(msg, Util.COPS);
+                    //Util.showOriginResult(msg, Util.COPS);
                     //get cellinfo
                     try {
                         Util.getCellInfo(mHandler.obtainMessage(Util.EVENT_CELL_INFO));
@@ -180,6 +180,14 @@ public class OneKeyService extends Service{
                 }
                 case EVENT_GET_COPS:{
                     Util.showOriginResult(msg, "GET_COPS");
+                    break;
+                }
+                case EVENT_EPBSE:{
+                    Util.showOriginResult(msg, "GET_EPBSE");
+                    break;
+                }
+                case EVENT_ECBAND:{
+                    Util.showOriginResult(msg, "GET_ECBAND");
                     break;
                 }
             }
@@ -295,10 +303,6 @@ public class OneKeyService extends Service{
         super.onDestroy();
         mHandler.removeMessages(Util.EVENT_CELL_INFO);
         mHandler.removeMessages(EVENT_COPS);
-
-       /* Util.invokeAT(this,new String[]{"AT+EBTSAP=1", "+EBTSAP"},
-                mHandler.obtainMessage(EVENT_EBTSAP_ON));*/
-
         Log.i("gejun","OneKeyService onDestroy!");
     }
 
