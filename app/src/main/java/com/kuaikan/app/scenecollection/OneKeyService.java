@@ -68,6 +68,8 @@ public class OneKeyService extends Service{
     private final static int EVENT_GET_COPS = 99;
     public static final int EVENT_EPBSE = 200;
     public static final int EVENT_ECBAND = 201;
+    private static final int EVENT_CFUN_0 = 202;
+    private static final int EVENT_CFUN_1 = 203;
     private boolean save = true;
 
     private boolean isShowNow = false;
@@ -125,6 +127,10 @@ public class OneKeyService extends Service{
     }
 
     private void resetModemBand(){
+        /*Util.invokeAT(new String[]{"AT+CFUN=0", "+CFUN"},
+                mHandler.obtainMessage(EVENT_CFUN_0));
+        Util.invokeAT(new String[]{"AT+CFUN=1", "+CFUN"},
+                mHandler.obtainMessage(EVENT_CFUN_1));*/
         Util.invokeAT(new String[]{"AT+EPBSE=10,1,5,480","+EPBSE"},
                 mHandler.obtainMessage(EVENT_EPBSE));
         Util.invokeAT4CDMA(new String[]{"AT+ECBAND=0","+ECBAND"},
@@ -188,6 +194,14 @@ public class OneKeyService extends Service{
                 }
                 case EVENT_ECBAND:{
                     Util.showOriginResult(msg, "GET_ECBAND");
+                    break;
+                }
+                case EVENT_CFUN_0:{
+                    Util.showOriginResult(msg, "cfun_0");
+                    break;
+                }
+                case EVENT_CFUN_1:{
+                    Util.showOriginResult(msg, "cfun_1");
                     break;
                 }
             }

@@ -197,6 +197,39 @@ public class Util{
         return 1;
     }
 
+    public static int getDefaultSubscription(){
+        try {
+            Class pf = Class.forName("com.android.internal.telephony.PhoneFactory");
+
+            Method getDefaultSubscription = pf.getDeclaredMethod("getDefaultSubscription");
+
+            int subid = (int) getDefaultSubscription.invoke(pf);
+
+            return subid;
+        }catch (Exception exception){
+            Log.i("gejun","exception = " + exception.toString());
+            return 0;
+        }
+    }
+
+    public static int getPhoneId(int subid){
+        try {
+            Class SubscriptionController = Class.forName("com.android.internal.telephony.SubscriptionController");
+
+            Method getInstance = SubscriptionController.getDeclaredMethod("getInstance");
+            Method getPhoneId = SubscriptionController.getDeclaredMethod("getPhoneId", int.class);
+
+            Object sInstance = getInstance.invoke(SubscriptionController);
+
+            int phoneId = (int) getPhoneId.invoke(sInstance, subid);
+
+            return phoneId;
+        }catch (Exception exception){
+            Log.i("gejun","exception = " + exception.toString());
+            return 0;
+        }
+    }
+
     public static Object reflectPhone(){
         try {
             Class pf = Class.forName("com.android.internal.telephony.PhoneFactory");
@@ -246,6 +279,28 @@ public class Util{
             Class pf = Class.forName("com.android.internal.telephony.PhoneFactory");
             Method getPhone = pf.getDeclaredMethod("getDefaultPhone");
             Object phone1 = getPhone.invoke(pf);
+
+            Class LteDcPhoneProxyC = Class.forName("com.mediatek.internal.telephony.ltedc.LteDcPhoneProxy");
+            Object phone2 = LteDcPhoneProxyC.cast(phone1);
+
+            Method getLtePhoneM = LteDcPhoneProxyC.getDeclaredMethod("getNLtePhone");
+            Object phone3 = getLtePhoneM.invoke(phone2);
+//            Log.i("gejun", "phone1 = " + phone1);
+//            Log.i("gejun", "phone2 = " + phone2);
+//            Log.i("gejun", "phone3 = " + phone3);
+
+            return phone3;
+        }catch (Exception exception){
+            Log.i("gejun","exception = " + exception.toString());
+            return null;
+        }
+    }
+
+    public static Object reflectCDMAPhone(int phoneId){
+        try {
+            Class pf = Class.forName("com.android.internal.telephony.PhoneFactory");
+            Method getPhone = pf.getDeclaredMethod("getPhone", int.class);
+            Object phone1 = getPhone.invoke(pf, phoneId);
 
             Class LteDcPhoneProxyC = Class.forName("com.mediatek.internal.telephony.ltedc.LteDcPhoneProxy");
             Object phone2 = LteDcPhoneProxyC.cast(phone1);
@@ -329,7 +384,7 @@ public class Util{
 
     public static void invokeAT4CDMA(String[] atCmd, Message msg){
         try {
-            Object phone = Util.reflectCDMAPhone();
+            Object phone = Util.reflectCDMAPhone(0);
             Class pf = Class.forName("com.android.internal.telephony.Phone");
             Method m = pf.getDeclaredMethod("invokeOemRilRequestStrings", new Class[]{String[].class, Message.class});
             m.invoke(phone, new Object[]{atCmd, msg});
@@ -340,8 +395,18 @@ public class Util{
     }
 
     public static void invokeAT(String[] atCmd, Message msg){
+        /*boolean sim1Insert = isSim1Insert();
+        boolean sim2Insert = isSim2Insert();
+        Log.e("gejun", "------------sim1Insert----------" + sim1Insert);
+        Log.e("gejun", "------------sim2Insert----------" + sim2Insert);
+        Log.e("gejun", "------------subId----------" + subId);
+        Log.e("gejun", "------------phoneId----------" + phoneId);*/
+        int subId = getDefaultSubscription();
+        int phoneId = getPhoneId(subId);
+        Log.d("gejun", "------------subId----------" + subId);
+        Log.d("gejun", "------------phoneId----------" + phoneId);
         try {
-            Object phone = Util.reflectPhone();
+            Object phone = Util.reflectPhone(0);
             Class pf = Class.forName("com.android.internal.telephony.Phone");
             Method m = pf.getDeclaredMethod("invokeOemRilRequestStrings", new Class[]{String[].class, Message.class});
             m.invoke(phone, new Object[]{atCmd, msg});

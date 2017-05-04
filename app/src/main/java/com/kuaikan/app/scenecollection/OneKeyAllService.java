@@ -55,6 +55,11 @@ public class OneKeyAllService extends Service{
     }
 
     private final static int EVENT_GET_COPS = 99;
+    public static final int EVENT_EPBSE = 200;
+    public static final int EVENT_ECBAND = 201;
+    private static final int EVENT_CFUN_0 = 202;
+    private static final int EVENT_CFUN_1 = 203;
+
     private boolean save = true;
     @Override
     public void onCreate() {
@@ -75,10 +80,22 @@ public class OneKeyAllService extends Service{
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
+                resetModemBand();
                 Util.atCOPS(mHandler.obtainMessage(EVENT_GET_COPS));
                 Util.AtERAT(currentRat, mHandler.obtainMessage(Util.EVENT_ERAT));
             }
         },10000); //wait modem power on
+    }
+
+    private void resetModemBand(){
+        /*Util.invokeAT(new String[]{"AT+CFUN=0", "+CFUN"},
+                mHandler.obtainMessage(EVENT_CFUN_0));
+        Util.invokeAT(new String[]{"AT+CFUN=1", "+CFUN"},
+                mHandler.obtainMessage(EVENT_CFUN_1));*/
+        Util.invokeAT(new String[]{"AT+EPBSE=10,1,5,480","+EPBSE"},
+                mHandler.obtainMessage(EVENT_EPBSE));
+        Util.invokeAT4CDMA(new String[]{"AT+ECBAND=0","+ECBAND"},
+                mHandler.obtainMessage(EVENT_ECBAND));
     }
 
     private void switchToTDDModemRequst(){
@@ -177,6 +194,22 @@ public class OneKeyAllService extends Service{
                 }
                 case EVENT_GET_COPS:{
                     Util.showOriginResult(msg, "GET_COPS");
+                    break;
+                }
+                case EVENT_EPBSE:{
+                    Util.showOriginResult(msg, "GET_EPBSE");
+                    break;
+                }
+                case EVENT_ECBAND:{
+                    Util.showOriginResult(msg, "GET_ECBAND");
+                    break;
+                }
+                case EVENT_CFUN_0:{
+                    Util.showOriginResult(msg, "cfun_0");
+                    break;
+                }
+                case EVENT_CFUN_1:{
+                    Util.showOriginResult(msg, "cfun_1");
                     break;
                 }
             }

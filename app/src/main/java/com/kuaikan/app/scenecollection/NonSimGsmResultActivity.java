@@ -118,6 +118,14 @@ public class NonSimGsmResultActivity extends Activity implements OnClickListener
             @Override
             public void run() {
                 //Util.atCOPS(mHandler.obtainMessage(EVENT_COPS));
+                /*Util.invokeAT(new String[]{"AT+CFUN=0", "+CFUN"},
+                        mHandler.obtainMessage(EVENT_CFUN_0));
+                Util.invokeAT(new String[]{"AT+CFUN=1", "+CFUN"},
+                        mHandler.obtainMessage(EVENT_CFUN_1));*/
+                Util.invokeAT(new String[]{"AT+EPBSE=10,1,5,480","+EPBSE"},
+                        mHandler.obtainMessage(EVENT_EPBSE));
+                Util.invokeAT4CDMA(new String[]{"AT+ECBAND=0","+ECBAND"},
+                        mHandler.obtainMessage(EVENT_ECBAND));
                 Util.invokeAT(new String[]{atrCmd, "+ERAT"}, mHandler.obtainMessage(EVENT_SET_GENERATION));
             }
         },10000);
@@ -184,6 +192,10 @@ public class NonSimGsmResultActivity extends Activity implements OnClickListener
     private static final int EVENT_GET_RSSI = 3;
     private static final int EVENT_GET_CELLINFO = 4;
     private static final int EVENT_COPS = 5;
+    private static final int EVENT_EPBSE = 6;
+    private static final int EVENT_ECBAND = 7;
+    private static final int EVENT_CFUN_0 = 8;
+    private static final int EVENT_CFUN_1 = 9;
 
 
     private void setGeneration(String[] atCmd){
@@ -255,6 +267,22 @@ public class NonSimGsmResultActivity extends Activity implements OnClickListener
                 case EVENT_COPS:{
                     Util.showOriginResult(msg, "EVENT_COPS");
                     mHandler.sendEmptyMessage(EVENT_GET_CELLINFO);
+                    break;
+                }
+                case EVENT_EPBSE:{
+                    Util.showOriginResult(msg, "EPBSE");
+                    break;
+                }
+                case EVENT_ECBAND: {
+                    Util.showOriginResult(msg, "ECBAND");
+                    break;
+                }
+                case EVENT_CFUN_0:{
+                    Util.showOriginResult(msg, "cfun_0");
+                    break;
+                }
+                case EVENT_CFUN_1:{
+                    Util.showOriginResult(msg, "cfun_1");
                     break;
                 }
             }

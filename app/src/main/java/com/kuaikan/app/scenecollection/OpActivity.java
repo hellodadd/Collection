@@ -99,13 +99,13 @@ public class OpActivity extends Activity implements OnClickListener{
                 startActivity(intent);
                 break;
             case R.id.cfun_button_0:{
-                Util.invokeAT(this,new String[]{"AT+EBTSAP=0", "+EBTSAP"},
-                        mHandler.obtainMessage(EVENT_EBTSAP));
+                Util.invokeAT(this,new String[]{"AT+CFUN=0", "+CFUN"},
+                        mHandler.obtainMessage(EVENT_CFUN_0));
                 break;
             }
             case R.id.cfun_button_1:{
-                Util.invokeAT(this,new String[]{"AT+EBTSAP=1", "+EBTSAP"},
-                        mHandler.obtainMessage(EVENT_EBTSAP));
+                Util.invokeAT(this,new String[]{"AT+CFUN=1", "+CFUN"},
+                        mHandler.obtainMessage(EVENT_CFUN_1));
                 break;
             }
         }
