@@ -121,7 +121,7 @@ public class OneKeyService extends Service{
             },10000);
         }else{
             resetModemBand();
-            Util.atCOPS(mHandler.obtainMessage(EVENT_GET_COPS));
+            //Util.atCOPS(mHandler.obtainMessage(EVENT_GET_COPS));
             Util.AtERAT(currentRat, mHandler.obtainMessage(Util.EVENT_ERAT));
         }
     }

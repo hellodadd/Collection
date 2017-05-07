@@ -228,7 +228,7 @@ public class NonSimOneKeyActivity extends AppCompatActivity {
     private void startOneKeyService(){
         Intent it = new Intent();
         it.setPackage("com.kuaikan.app.scenecollection");
-        it.setAction("com.kuaikan.nonsim_one_key");
+        it.setAction("com.kuaikan.sim_one_key");
         it.putExtra("show", true);
         it.putExtra("is_show_now", true);
         it.putExtra("is_quick_search", isQuickSearch);
@@ -241,7 +241,7 @@ public class NonSimOneKeyActivity extends AppCompatActivity {
     private void stopOneKeyService(){
         Intent it = new Intent();
         it.setPackage("com.kuaikan.app.scenecollection");
-        it.setAction("com.kuaikan.nonsim_one_key");
+        it.setAction("com.kuaikan.sim_one_key");
         stopService(it);
     }
 

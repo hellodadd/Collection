@@ -122,6 +122,15 @@
             </intent-filter>
         </service>
 
+        <service android:name="com.kuaikan.app.scenecollection.OneKeyServiceWithSim"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.kuaikan.sim_one_key"/>
+                <action android:name="com.kuaikan.one_key"/>
+            </intent-filter>
+        </service>
+
         <service android:name="com.kuaikan.app.scenecollection.OneKeyAllService"
             android:enabled="true"
             android:exported="true">

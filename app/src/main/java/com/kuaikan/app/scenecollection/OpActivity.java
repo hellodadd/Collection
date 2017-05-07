@@ -56,8 +56,8 @@ public class OpActivity extends Activity implements OnClickListener{
         Off.setOnClickListener(this);
         On = (Button)findViewById(R.id.cfun_button_1);
         On.setOnClickListener(this);
-        Off.setVisibility(View.GONE);
-        On.setVisibility(View.GONE);
+        //Off.setVisibility(View.GONE);
+        //On.setVisibility(View.GONE);
     }
 
     public void onClick(View arg0) {
@@ -65,8 +65,11 @@ public class OpActivity extends Activity implements OnClickListener{
         Intent intent;
         switch(id){
             case R.id.cu:
-                intent = new Intent(this, CuActivity.class);
-                startActivity(intent);
+                /*intent = new Intent(this, CuActivity.class);
+                startActivity(intent);*/
+                Util.setSettingsPutInt(this, getContentResolver(),
+                        Util.PREFERRED_NETWORK_MODE + Util.getDefaultSubscription(),11);
+                Util.invokeSetPreferredNetworkType(11, mHandler.obtainMessage(EVENT_NETWORK_LTE));
                 break;
             case R.id.cmcc:
                 intent = new Intent(this, CmccActivity.class);
@@ -99,13 +102,15 @@ public class OpActivity extends Activity implements OnClickListener{
                 startActivity(intent);
                 break;
             case R.id.cfun_button_0:{
-                Util.invokeAT(this,new String[]{"AT+CFUN=0", "+CFUN"},
+                Util.invokeAT(this,new String[]{"AT+EBTSAP=0", "+EBTSAP"},
                         mHandler.obtainMessage(EVENT_CFUN_0));
+                //Util.reflectRadioManager(false);
                 break;
             }
             case R.id.cfun_button_1:{
-                Util.invokeAT(this,new String[]{"AT+CFUN=1", "+CFUN"},
-                        mHandler.obtainMessage(EVENT_CFUN_1));
+                /*Util.invokeAT(this,new String[]{"AT+CFUN=1", "+CFUN"},
+                        mHandler.obtainMessage(EVENT_CFUN_1));*/
+                Util.reflectModemPower(true);
                 break;
             }
         }
@@ -129,10 +134,10 @@ public class OpActivity extends Activity implements OnClickListener{
                 }
             },10000);
         }else {
-            Util.invokeAT(new String[]{"AT+EPBSE=10,1,5,480","+EPBSE"},
+            /*Util.invokeAT(new String[]{"AT+EPBSE=10,1,5,480","+EPBSE"},
                     mHandler.obtainMessage(EVENT_EPBSE));
             Util.invokeAT4CDMA(new String[]{"AT+ECBAND=0","+ECBAND"},
-                    mHandler.obtainMessage(EVENT_ECBAND));
+                    mHandler.obtainMessage(EVENT_ECBAND));*/
             Util.atCOPS(mHandler.obtainMessage(EVENT_COPS));
         }
     }
@@ -143,6 +148,8 @@ public class OpActivity extends Activity implements OnClickListener{
     private static final int EVENT_CFUN_1 = 3;
     private static final int EVENT_EPBSE = 4;
     private static final int EVENT_ECBAND = 5;
+    private static final int EVENT_NETWORK_LTE = 6;
+
 
     Handler mHandler = new Handler() {
         @Override
@@ -170,6 +177,10 @@ public class OpActivity extends Activity implements OnClickListener{
                 }
                 case EVENT_ECBAND:{
                     Util.showOriginResult(msg, "ECBAND");
+                    break;
+                }
+                case EVENT_NETWORK_LTE:{
+                    Util.showOriginResult(msg, "lte");
                     break;
                 }
             }

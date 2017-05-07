@@ -68,6 +68,8 @@ public class Util{
     public static final int MD_TYPE_FDD     = 100;
     public static final int MD_TYPE_TDD     = 101;
 
+    public static final String PREFERRED_NETWORK_MODE = "preferred_network_mode";
+
     public static void setGeneration(int generation, Message msg) throws Exception{
         String[] atCmd = new String[]{"AT+ERAT="+generation,"+ERAT"};
 //        getPhone().invokeOemRilRequestStrings(atCmd, msg);
@@ -360,9 +362,9 @@ public class Util{
             Method method = radio.getDeclaredMethod("getInstance");
             Object object = method.invoke(radio);
             Method powerRadio = radio.getDeclaredMethod("setModemPower", boolean.class, int.class);
-            //for(int i = 0; i < 2; i++){
-                powerRadio.invoke(object, onoff, 3);
-            //}
+            for(int i = 0; i < 12; i++){
+                powerRadio.invoke(object, onoff, i);
+            }
         }catch (Exception ex){
             Log.i("zwb", "zwb 111 exception = " + ex.toString());
         }
@@ -374,7 +376,7 @@ public class Util{
             Method method = radio.getDeclaredMethod("getInstance");
             Object object = method.invoke(radio);
             Method powerRadio = radio.getDeclaredMethod("setRadioPower", boolean.class, int.class);
-            for(int i = 0; i < 2; i++){
+            for(int i = 0; i < 12; i++){
                 powerRadio.invoke(object, onoff, i);
             }
         }catch (Exception ex){
@@ -835,6 +837,17 @@ public class Util{
             putInt.invoke(settings, resolver, name, value);
 
         }catch (Exception e){
+            Log.i("gejun","e = " + e.toString());
+        }
+    }
+
+    public static void invokeSetRadioPower(boolean onoff){
+        try {
+            Object phone = Util.reflectPhone(10);
+            Class pf = Class.forName("com.android.internal.telephony.Phone");
+            Method m = pf.getDeclaredMethod("setRadioPower", boolean.class);
+            m.invoke(phone, onoff);
+        } catch (Exception e){
             Log.i("gejun","e = " + e.toString());
         }
     }
