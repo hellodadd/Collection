@@ -113,7 +113,7 @@
             </intent-filter>
         </service>
 
-        <service android:name="com.kuaikan.app.scenecollection.OneKeyService"
+        <service android:name="com.kuaikan.app.scenecollection.OneKeyServiceWithoutSim"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
@@ -122,7 +122,7 @@
             </intent-filter>
         </service>
 
-        <service android:name="com.kuaikan.app.scenecollection.OneKeyServiceWithSim"
+        <service android:name="com.kuaikan.app.scenecollection.OneKeyService"
             android:enabled="true"
             android:exported="true">
             <intent-filter>

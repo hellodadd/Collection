@@ -105,14 +105,25 @@ public class NonSimGsmResultActivity extends Activity implements OnClickListener
             requestWithoutSim(atrCmd);
         }else{
             if(whatCops == Util.TYPE_CMCC_GSM
-                    || whatCops == Util.TYPE_CU_GSM
-                    || whatCops == Util.TYPE_CMCC_TDSCDMA) {
+                    || whatCops == Util.TYPE_CU_GSM) {
+                powerOffSimCard();
                 setNetWorkTypeGsmOnly();
                 mHandler.sendEmptyMessageDelayed(EVENT_SET_GENERATION, 10000);
-            }else if(whatCops == Util.TYPE_CU_WCDMA){
+            }else if(whatCops == Util.TYPE_CU_WCDMA) {
+                powerOffSimCard();
                 setNetWorkTypeWCDMAOnly();
                 mHandler.sendEmptyMessageDelayed(EVENT_SET_GENERATION, 10000);
+            }else if(whatCops == Util.TYPE_CMCC_TDSCDMA){
+                mHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        powerOffSimCard();
+                        setNetWorkTypeGsmOnly();
+                        mHandler.sendEmptyMessageDelayed(EVENT_SET_GENERATION, 10000);
+                    }
+                },10000);
             }else{
+                powerOffSimCard();
                 setNetWorkTypeLte();
                 mHandler.sendEmptyMessageDelayed(EVENT_SET_GENERATION, 10000);
             }
@@ -149,6 +160,11 @@ public class NonSimGsmResultActivity extends Activity implements OnClickListener
                 Util.reflectSetModemSelectionMode(0,currentModem);
             }
         }
+    }
+
+    private void powerOffSimCard(){
+        Util.invokeAT(this,new String[]{"AT+EBTSAP=0", "+EBTSAP"},
+                mHandler.obtainMessage(EVENT_AT_EBTSAP));
     }
 
     private void setNetWorkTypeGsmOnly(){
@@ -202,6 +218,7 @@ public class NonSimGsmResultActivity extends Activity implements OnClickListener
     private static final int EVENT_CFUN_1 = 9;
     private static final int EVENT_NETWORK_GSM = 10;
     private static final int EVENT_NETWORK_LTE = 11;
+    private static final int EVENT_AT_EBTSAP = 12;
 
 
     private void setGeneration(String[] atCmd){
@@ -289,6 +306,10 @@ public class NonSimGsmResultActivity extends Activity implements OnClickListener
                 }
                 case EVENT_CFUN_1:{
                     Util.showOriginResult(msg, "cfun_1");
+                    break;
+                }
+                case EVENT_AT_EBTSAP:{
+                    Util.showOriginResult(msg, "EBTSAP");
                     break;
                 }
             }
