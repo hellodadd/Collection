@@ -66,19 +66,6 @@ public class NonSimGsmResultActivity extends Activity implements OnClickListener
 
         networkModeType = getIntent().getIntExtra(Util.NETWORK_MODE_TYPE, 0);
         Log.i("gejun","networkModeType = " + networkModeType);
-//        if(savedInstanceState == null) {
-//            if (networkModeType == Util.TYPE_CMCC_GSM || networkModeType == Util.TYPE_CMCC_TDSCDMA || networkModeType == Util.TYPE_CMCC_LTE) {
-////                OpSetting.getIntentce().switchSimCard(this, OpSetting.OP_CMCC);
-//                Util.startSetOPService(this, OP_CMCC);
-//            } else if (networkModeType == Util.TYPE_CU_GSM || networkModeType == Util.TYPE_CU_LTE || networkModeType == Util.TYPE_CU_WCDMA) {
-////                OpSetting.getIntentce().switchSimCard(this, OpSetting.OP_CU);
-//                Util.startSetOPService(this, OP_CU);
-//            } else if (networkModeType == Util.TYPE_TELECOM_LTE) {
-////                OpSetting.getIntentce().switchSimCard(this, OpSetting.OP_TELCOM);
-//                Util.startSetOPService(this, OP_TELCOM);
-//            }
-//        }
-
         resultList = new ArrayList<Result>();
 
         list = (ListView) findViewById(R.id.list);
@@ -114,52 +101,39 @@ public class NonSimGsmResultActivity extends Activity implements OnClickListener
             atrCmd = "AT+ERAT=3,0";
         }
 
-        mHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                //Util.atCOPS(mHandler.obtainMessage(EVENT_COPS));
-                /*Util.invokeAT(new String[]{"AT+CFUN=0", "+CFUN"},
-                        mHandler.obtainMessage(EVENT_CFUN_0));
-                Util.invokeAT(new String[]{"AT+CFUN=1", "+CFUN"},
-                        mHandler.obtainMessage(EVENT_CFUN_1));*/
-                Util.invokeAT(new String[]{"AT+EPBSE=10,1,5,480","+EPBSE"},
-                        mHandler.obtainMessage(EVENT_EPBSE));
-                Util.invokeAT4CDMA(new String[]{"AT+ECBAND=0","+ECBAND"},
-                        mHandler.obtainMessage(EVENT_ECBAND));
-                Util.invokeAT(new String[]{atrCmd, "+ERAT"}, mHandler.obtainMessage(EVENT_SET_GENERATION));
+        if(!Util.isSimInsert()){
+            requestWithoutSim(atrCmd);
+        }else{
+            if(whatCops == Util.TYPE_CMCC_GSM
+                    || whatCops == Util.TYPE_CU_GSM
+                    || whatCops == Util.TYPE_CMCC_TDSCDMA) {
+                setNetWorkTypeGsmOnly();
+                mHandler.sendEmptyMessageDelayed(EVENT_SET_GENERATION, 10000);
+            }else if(whatCops == Util.TYPE_CU_WCDMA){
+                setNetWorkTypeWCDMAOnly();
+                mHandler.sendEmptyMessageDelayed(EVENT_SET_GENERATION, 10000);
+            }else{
+                setNetWorkTypeLte();
+                mHandler.sendEmptyMessageDelayed(EVENT_SET_GENERATION, 10000);
             }
-        },10000);
+        }
 
         mDataAdapter = new DataAdapter(this);
         list.setAdapter(mDataAdapter);
 
         if(networkModeType == Util.TYPE_CU_GSM){
-//            init(new String[]{"AT+ERAT=0,0","+ERAT"},
-//                    new String[]{"AT+COPS=1,2,46001","+COPS"});
             setTitle(R.string.cu_gsm);
         } else if (networkModeType == Util.TYPE_CU_WCDMA){
-//            init(new String[]{"AT+ERAT=1,0","+ERAT"},
-//                    new String[]{"AT+COPS=1,2,46001","+COPS"});
             setTitle(R.string.wcdma);
         } else if (networkModeType == Util.TYPE_CU_LTE){
-//            init(new String[]{"AT+ERAT=3,0","+ERAT"},
-//                    new String[]{"AT+COPS=1,2,46001","+COPS"});
             setTitle(R.string.cu_lte);
         } else if (networkModeType == Util.TYPE_CMCC_GSM){
-//            init(new String[]{"AT+ERAT=0,0","+ERAT"},
-//                    new String[]{"AT+COPS=1,2,46000","+COPS"});
             setTitle(R.string.cmcc_gsm);
         } else if (networkModeType == Util.TYPE_CMCC_TDSCDMA){
-//            init(new String[]{"AT+ERAT=1,0","+ERAT"},
-//                    new String[]{"AT+COPS=1,2,46000","+COPS"});
             setTitle(R.string.tdscdma);
         } else if (networkModeType == Util.TYPE_CMCC_LTE){
-//            init(new String[]{"AT+ERAT=3,0","+ERAT"},
-//                    new String[]{"AT+COPS=1,2,46000","+COPS"});
             setTitle(R.string.cmcc_lte);
         } else if (networkModeType == Util.TYPE_TELECOM_LTE){
-//            init(new String[]{"AT+ERAT=3,0", "+ERAT"},
-//                    new String[]{"AT+COPS=1,2,46011","+COPS"});
             setTitle(R.string.telecom_lte);
         }
     }
@@ -167,7 +141,6 @@ public class NonSimGsmResultActivity extends Activity implements OnClickListener
     @Override
     public void onPause() {
         super.onPause();
-        Log.i("gejun","GSMResultActivity onPause remove EVENT_GET_CELLINFO");
         mHandler.removeMessages(EVENT_GET_CELLINFO);
 
         if(whatCops == Util.TYPE_CMCC_TDSCDMA){
@@ -176,6 +149,37 @@ public class NonSimGsmResultActivity extends Activity implements OnClickListener
                 Util.reflectSetModemSelectionMode(0,currentModem);
             }
         }
+    }
+
+    private void setNetWorkTypeGsmOnly(){
+        Util.setSettingsPutInt(this, getContentResolver(),
+                Util.PREFERRED_NETWORK_MODE + Util.getDefaultSubscription(),1);
+        Util.invokeSetPreferredNetworkType(1, mHandler.obtainMessage(EVENT_NETWORK_GSM));
+    }
+
+    private void setNetWorkTypeLte(){
+        Util.setSettingsPutInt(this, getContentResolver(),
+                Util.PREFERRED_NETWORK_MODE + Util.getDefaultSubscription(),11);
+        Util.invokeSetPreferredNetworkType(11, mHandler.obtainMessage(EVENT_NETWORK_LTE));
+    }
+
+    private void setNetWorkTypeWCDMAOnly(){
+        Util.setSettingsPutInt(this, getContentResolver(),
+                Util.PREFERRED_NETWORK_MODE + Util.getDefaultSubscription(),2);
+        Util.invokeSetPreferredNetworkType(2, mHandler.obtainMessage(EVENT_NETWORK_GSM));
+    }
+
+    private void requestWithoutSim(final String atcmd){
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Util.invokeAT(new String[]{"AT+EPBSE=10,1,5,480","+EPBSE"},
+                        mHandler.obtainMessage(EVENT_EPBSE));
+                Util.invokeAT4CDMA(new String[]{"AT+ECBAND=0","+ECBAND"},
+                        mHandler.obtainMessage(EVENT_ECBAND));
+                Util.invokeAT(new String[]{atcmd, "+ERAT"}, mHandler.obtainMessage(EVENT_SET_GENERATION));
+            }
+        },10000);
     }
 
 
@@ -196,6 +200,8 @@ public class NonSimGsmResultActivity extends Activity implements OnClickListener
     private static final int EVENT_ECBAND = 7;
     private static final int EVENT_CFUN_0 = 8;
     private static final int EVENT_CFUN_1 = 9;
+    private static final int EVENT_NETWORK_GSM = 10;
+    private static final int EVENT_NETWORK_LTE = 11;
 
 
     private void setGeneration(String[] atCmd){
@@ -458,7 +464,8 @@ public class NonSimGsmResultActivity extends Activity implements OnClickListener
                 return true;
             }
             Util.saveToXml(this, resultList);
-        }
+        }//        phone.invokeOemRilRequestStrings(atCmd, mHandler
+//                .obtainMessage(EVENT_SET_OP));
         return super.onOptionsItemSelected(item);
     }
 

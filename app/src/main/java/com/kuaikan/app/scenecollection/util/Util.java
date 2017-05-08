@@ -164,7 +164,7 @@ public class Util{
             }
         }
         if (subId == null || subId.length == 0
-                || isValidSubscriptionId(subId[0])) {
+                || !isValidSubscriptionId(subId[0])) {
             return false;
         }
         return true;
@@ -178,7 +178,7 @@ public class Util{
             }
         }
         if (subId == null || subId.length == 0
-                || isValidSubscriptionId(subId[0])) {
+                || !isValidSubscriptionId(subId[0])) {
             return false;
         }
         return true;

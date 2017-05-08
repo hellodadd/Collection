@@ -65,11 +65,8 @@ public class OpActivity extends Activity implements OnClickListener{
         Intent intent;
         switch(id){
             case R.id.cu:
-                /*intent = new Intent(this, CuActivity.class);
-                startActivity(intent);*/
-                Util.setSettingsPutInt(this, getContentResolver(),
-                        Util.PREFERRED_NETWORK_MODE + Util.getDefaultSubscription(),11);
-                Util.invokeSetPreferredNetworkType(11, mHandler.obtainMessage(EVENT_NETWORK_LTE));
+                intent = new Intent(this, CuActivity.class);
+                startActivity(intent);
                 break;
             case R.id.cmcc:
                 intent = new Intent(this, CmccActivity.class);
@@ -103,14 +100,12 @@ public class OpActivity extends Activity implements OnClickListener{
                 break;
             case R.id.cfun_button_0:{
                 Util.invokeAT(this,new String[]{"AT+EBTSAP=0", "+EBTSAP"},
-                        mHandler.obtainMessage(EVENT_CFUN_0));
-                //Util.reflectRadioManager(false);
+                        mHandler.obtainMessage(EVENT_EBTSAP));
                 break;
             }
             case R.id.cfun_button_1:{
-                /*Util.invokeAT(this,new String[]{"AT+CFUN=1", "+CFUN"},
-                        mHandler.obtainMessage(EVENT_CFUN_1));*/
-                Util.reflectModemPower(true);
+                Util.invokeAT(this,new String[]{"AT+EBTSAP=1", "+EBTSAP"},
+                        mHandler.obtainMessage(EVENT_EBTSAP));
                 break;
             }
         }
@@ -134,12 +129,16 @@ public class OpActivity extends Activity implements OnClickListener{
                 }
             },10000);
         }else {
-            /*Util.invokeAT(new String[]{"AT+EPBSE=10,1,5,480","+EPBSE"},
+            Util.invokeAT(new String[]{"AT+EPBSE=10,1,5,480","+EPBSE"},
                     mHandler.obtainMessage(EVENT_EPBSE));
             Util.invokeAT4CDMA(new String[]{"AT+ECBAND=0","+ECBAND"},
-                    mHandler.obtainMessage(EVENT_ECBAND));*/
+                    mHandler.obtainMessage(EVENT_ECBAND));
             Util.atCOPS(mHandler.obtainMessage(EVENT_COPS));
         }
+
+        boolean isSimInsert = Util.isSimInsert();
+
+        Log.d("gej", "gej --------- isSimInsert = " + isSimInsert);
     }
 
     private static final int EVENT_COPS = 0;

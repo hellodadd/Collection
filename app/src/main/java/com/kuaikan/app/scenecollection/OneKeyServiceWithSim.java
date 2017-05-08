@@ -85,15 +85,17 @@ public class OneKeyServiceWithSim extends Service{
     @Override
     public void onCreate() {
         //Util.atCOPS(mHandler.obtainMessage(EVENT_GET_COPS));
-        setNetWorkTypeGsmOnly();
-        mHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                startRequstByFDD();
-            }
-        },10000);
-        //startLteRequset();
-        //startRequstByFDD();
+        if(Util.isSimInsert()) {
+            setNetWorkTypeGsmOnly();
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    startRequstByFDD();
+                }
+            }, 10000);
+        }else{
+            startRequstByFDD();
+        }
         super.onCreate();
     }
 
@@ -251,8 +253,12 @@ public class OneKeyServiceWithSim extends Service{
                     showResult(msg, Util.ECELL);
                     break;
                 }
+                case EVENT_CPON_CDMA:{
+                    Util.invokeAT4CDMA(new String[]{"AT+CPON","+CPON"},
+                            mHandler.obtainMessage(EVENT_GET_CDMA_INFO));
+                    break;
+                }
                 case EVENT_GET_CDMA_INFO:{
-                    Util.invokeAT4CDMA(new String[]{"AT+CPON","+CPON"}, null);
 
                     Util.invokeAT4CDMA(new String[]{"AT+VLOCINFO?", "+VLOCINFO"},
                             mHandler.obtainMessage(EVENT_GET_ACTIVE_CDMA));
@@ -369,19 +375,8 @@ public class OneKeyServiceWithSim extends Service{
             }
         }
 
-        if(isShowNow){
-            endRequst();
-        }
-
-        Log.i("gejun","************save result*************===" + cdmaResultList);
-
-        /*if(retry){
-            retry = false;
-            sendCDMARequest();
-        }else {
-            endAllRequset();
-        }*/
-        if(!isLteRequset){
+        if(!isLteRequset && Util.isSimInsert()){
+            cdmaCount = 0;
             startLteStep();
         }else {
             endAllRequset();
@@ -447,7 +442,7 @@ public class OneKeyServiceWithSim extends Service{
             Log.i("gejun","e = " + e.toString());
         }
         if(arr != null && !arr[0].equals("+ECELL: 0")) {
-            if(isLteRequset){
+            if(isLteRequset && Util.isSimInsert()){
                 extraDataLte(arr);
             }else {
                 extraData(arr);
@@ -463,13 +458,6 @@ public class OneKeyServiceWithSim extends Service{
 
     private void extraData(String[] p){
         String o = p[0];
-        //o = "+ECELL: 7,7,\"01839603\",\"1877\",460,0,128,48,22,-372,-36,268435455,268435455,268435455,7,
-        // \"0FFFFFFF\",\"FFFF\",268435455,268435455,127,39,4,-408,-72,268435455,268435455,268435455,7,
-        // \"0FFFFFFF\",\"FFFF\",268435455,268435455,263,31,23,-440,-34,268435455,268435455,268435455,7,
-        // \"0FFFFFFF\",\"FFFF\",268435455,268435455,262,29,21,-448,-38,268435455,268435455,268435455,7,
-        // \"0FFFFFFF\",\"FFFF\",268435455,268435455,263,29,20,-448,-40,268435455,268435455,268435455,7,
-        // \"0FFFFFFF\",\"FFFF\",268435455,268435455,262,27,20,-456,-40,268435455,268435455,268435455,7,
-        // \"0FFFFFFF\",\"FFFF\",268435455,268435455,470,24,11,-468,-58,268435455,268435455,268435455";
         String[] subItems = o.split(",");
         String rat = subItems[1];
         int mnc = Integer.parseInt(subItems[5]);
@@ -500,12 +488,12 @@ public class OneKeyServiceWithSim extends Service{
                 if ((currentRat.equals("0") || currentRat.equals("2"))
                         && resultCount < 2) {
                     Util.AtCOPS("46001", mHandler.obtainMessage(EVENT_COPS));
-                } else if (currentRat.equals("7")) {
-                    /*if (resultCount < 2) {
+                } else if (currentRat.equals("7") && !Util.isSimInsert()) {
+                    if (resultCount < 2) {
                         Util.AtCOPS("46001", mHandler.obtainMessage(EVENT_COPS));
                     } else if (resultCount < 3) {
                         Util.AtCOPS("46011", mHandler.obtainMessage(EVENT_COPS));
-                    }*/
+                    }
                 }
 
                 if (currentRat.equals("0") && resultCount == 2) {
@@ -514,15 +502,16 @@ public class OneKeyServiceWithSim extends Service{
                     Util.AtERAT("1", mHandler.obtainMessage(Util.EVENT_ERAT));
                 } else if (currentRat.equals("2") && resultCount == 2) {
                     resultCount = 0;
-                    //currentRat = "7";
-                    //Util.AtERAT("3", mHandler.obtainMessage(Util.EVENT_ERAT));
-                    sendCDMARequest();
-                    //startLteStep();
+                    if(!Util.isSimInsert()){
+                        currentRat = "7";
+                        Util.AtERAT("3", mHandler.obtainMessage(Util.EVENT_ERAT));
+                    }else{
+                        sendCDMARequest();
+                    }
                 } else if (currentRat.equals("7") && resultCount == 3) {
                     resultCount = 0;
                     currentRat = "0";
                     sendCDMARequest();
-                    //startLteStep();
                 }
             }
         } else {
@@ -537,11 +526,13 @@ public class OneKeyServiceWithSim extends Service{
                         && resultCount < 2) {
                     Util.AtCOPS("46001", mHandler.obtainMessage(EVENT_COPS));
                 } else if (currentRat.equals("7")) {
-                    /*if (resultCount < 2) {
-                        Util.AtCOPS("46001", mHandler.obtainMessage(EVENT_COPS));
-                    } else if (resultCount < 3) {
-                        Util.AtCOPS("46011", mHandler.obtainMessage(EVENT_COPS));
-                    }*/
+                    if(!Util.isSimInsert()) {
+                        if (resultCount < 2) {
+                            Util.AtCOPS("46001", mHandler.obtainMessage(EVENT_COPS));
+                        } else if (resultCount < 3) {
+                            Util.AtCOPS("46011", mHandler.obtainMessage(EVENT_COPS));
+                        }
+                    }
                 }
 
                 if (currentRat.equals("0") && resultCount == 2) {
@@ -550,15 +541,16 @@ public class OneKeyServiceWithSim extends Service{
                     Util.AtERAT("1", mHandler.obtainMessage(Util.EVENT_ERAT));
                 } else if (currentRat.equals("2") && resultCount == 2) {
                     resultCount = 0;
-                    //currentRat = "7";
-                    //Util.AtERAT("3", mHandler.obtainMessage(Util.EVENT_ERAT));
-                    sendCDMARequest();
-                    //startLteStep();
+                    if(!Util.isSimInsert()){
+                          currentRat = "7";
+                          Util.AtERAT("3", mHandler.obtainMessage(Util.EVENT_ERAT));
+                    }else {
+                        sendCDMARequest();
+                    }
                 } else if (currentRat.equals("7") && resultCount == 3) {
                     resultCount = 0;
                     currentRat = "0";
                     sendCDMARequest();
-                    //startLteStep();
                 }
             }
         }
@@ -663,9 +655,11 @@ public class OneKeyServiceWithSim extends Service{
     private static final int EVENT_GET_CDMA_INFO = 5;
     private static final int EVENT_GET_ACTIVE_CDMA =  6;
     private static final int EVENT_GET_NEIGHBOR_CDMA =  7;
+    private static final int EVENT_CPON_CDMA =  8;
 
     private void sendCDMARequest(){
-        mHandler.removeMessages(EVENT_GET_CDMA_INFO);
-        mHandler.sendEmptyMessage(EVENT_GET_CDMA_INFO);
+        //mHandler.removeMessages(EVENT_GET_CDMA_INFO);
+        //mHandler.sendEmptyMessage(EVENT_GET_CDMA_INFO);
+        mHandler.sendEmptyMessage(EVENT_CPON_CDMA);
     }
 }

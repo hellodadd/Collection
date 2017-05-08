@@ -19,33 +19,16 @@ public class TelecomActivity extends Activity implements OnClickListener{
     private Button g3;
     private Button g4;
 
-//    private TextView info;
-//
-//    private TelephonyManager manager;
-//    private Phone phone;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.telecom);
-
-//        phone=PhoneFactory.getDefaultPhone();
-//        if(phone instanceof LteDcPhoneProxy){
-//            Log.i("gejun","init LteDcPhoneProxy ");
-//            phone = ((LteDcPhoneProxy) phone).getNLtePhone();
-//        }
-//        Log.i("gejun","phone = " + phone);
-
-//        phone = PhoneFactory.getPhone(0).getNLtePhone();
-
-//        manager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
-
         g3 = (Button)findViewById(R.id.cdma);
         g3.setOnClickListener(this);
         g4 = (Button)findViewById(R.id.telecom_lte);
         g4.setOnClickListener(this);
 
-//        info = (TextView)findViewById(R.id.info);
     }
 
     @Override
