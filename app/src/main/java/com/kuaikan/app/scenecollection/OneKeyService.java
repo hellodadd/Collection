@@ -587,7 +587,7 @@ public class OneKeyService extends Service{
                     endRequst();
                 }
 
-                Log.i("gej","gej ---- currentRat = " + currentRat + " resultCount = " + resultCount);
+                //Log.i("gej","gej ---- currentRat = " + currentRat + " resultCount = " + resultCount);
 
                 if (currentRat.equals("7")) {
                     if (resultCount < 2) {
@@ -609,7 +609,7 @@ public class OneKeyService extends Service{
                 resultCount++;
             }
 
-            Log.i("gej","gej -2222222--- currentRat = " + currentRat + " resultCount = " + resultCount);
+            //Log.i("gej","gej -2222222--- currentRat = " + currentRat + " resultCount = " + resultCount);
             if(isQuickSearch){
                 if (currentRat.equals("7") && resultCount > 2) {
                     resultCount = 0;

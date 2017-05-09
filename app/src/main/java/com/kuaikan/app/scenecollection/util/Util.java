@@ -440,7 +440,7 @@ public class Util{
 
     public static void invokeSetPreferredNetworkType(int type, Message msg){
         try {
-            Object phone = Util.reflectPhone();
+            Object phone = Util.reflectPhone(0);
             Class pf = Class.forName("com.android.internal.telephony.Phone");
             Method m = pf.getDeclaredMethod("setPreferredNetworkType", new Class[]{int.class, Message.class});
             m.invoke(phone, new Object[]{type, msg});

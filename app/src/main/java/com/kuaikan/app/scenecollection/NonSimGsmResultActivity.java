@@ -111,14 +111,14 @@ public class NonSimGsmResultActivity extends Activity implements OnClickListener
                 mHandler.sendEmptyMessageDelayed(EVENT_SET_GENERATION, 10000);
             }else if(whatCops == Util.TYPE_CU_WCDMA) {
                 powerOffSimCard();
-                setNetWorkTypeWCDMAOnly();
+                setNetWorkTypeTDSCDMAOnly();
                 mHandler.sendEmptyMessageDelayed(EVENT_SET_GENERATION, 10000);
             }else if(whatCops == Util.TYPE_CMCC_TDSCDMA){
                 mHandler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         powerOffSimCard();
-                        setNetWorkTypeGsmOnly();
+                        setNetWorkTypeWCDMAOnly();
                         mHandler.sendEmptyMessageDelayed(EVENT_SET_GENERATION, 10000);
                     }
                 },10000);
@@ -182,7 +182,13 @@ public class NonSimGsmResultActivity extends Activity implements OnClickListener
     private void setNetWorkTypeWCDMAOnly(){
         Util.setSettingsPutInt(this, getContentResolver(),
                 Util.PREFERRED_NETWORK_MODE + Util.getDefaultSubscription(),2);
-        Util.invokeSetPreferredNetworkType(2, mHandler.obtainMessage(EVENT_NETWORK_GSM));
+        Util.invokeSetPreferredNetworkType(2, mHandler.obtainMessage(EVENT_NETWORK_WCDMA));
+    }
+
+    private void setNetWorkTypeTDSCDMAOnly(){
+        Util.setSettingsPutInt(this, getContentResolver(),
+                Util.PREFERRED_NETWORK_MODE + Util.getDefaultSubscription(),2);
+        Util.invokeSetPreferredNetworkType(2, mHandler.obtainMessage(EVENT_NETWORK_TDSCDMA));
     }
 
     private void requestWithoutSim(final String atcmd){
@@ -219,6 +225,8 @@ public class NonSimGsmResultActivity extends Activity implements OnClickListener
     private static final int EVENT_NETWORK_GSM = 10;
     private static final int EVENT_NETWORK_LTE = 11;
     private static final int EVENT_AT_EBTSAP = 12;
+    private static final int EVENT_NETWORK_WCDMA = 13;
+    private static final int EVENT_NETWORK_TDSCDMA = 14;
 
 
     private void setGeneration(String[] atCmd){
@@ -475,7 +483,7 @@ public class NonSimGsmResultActivity extends Activity implements OnClickListener
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
+        // Handle action bar item clicks here. The action bar willEVENT_NETWORK_TDSCDMA
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();

@@ -65,6 +65,7 @@ public class OneKeyAllService extends Service{
     private static final int EVENT_NETWORK_LTE = 205;
     private static final int EVENT_NETWORK_LTE_REQUEST = 206;
     private static final int EVENT_AT_EBTSAP = 207;
+    private static final int EVENT_NETWORK_TDSCDMA = 208;
 
     private boolean save = true;
     @Override
@@ -121,6 +122,12 @@ public class OneKeyAllService extends Service{
         Util.invokeSetPreferredNetworkType(11, mHandler.obtainMessage(EVENT_NETWORK_LTE));
     }
 
+    private void setNetWorkTypeTDSCDMAOnly(){
+        Util.setSettingsPutInt(this, getContentResolver(),
+                Util.PREFERRED_NETWORK_MODE + Util.getDefaultSubscription(),2);
+        Util.invokeSetPreferredNetworkType(2, mHandler.obtainMessage(EVENT_NETWORK_TDSCDMA));
+    }
+
     private void startWithSimRequst(){
         powerOffSimCard();
         setNetWorkTypeGsmOnly();
@@ -168,15 +175,31 @@ public class OneKeyAllService extends Service{
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                Util.atCOPS(mHandler.obtainMessage(EVENT_GET_COPS));
                 isTDDRequst = true;
                 isOneSearch = false;
                 resultCount = 0;
                 currentRat = "2";
                 td_scdma_flag = 0;
-                Util.AtERAT("1", mHandler.obtainMessage(Util.EVENT_ERAT));
+                if(!Util.isSimInsert()) {
+                    Util.atCOPS(mHandler.obtainMessage(EVENT_GET_COPS));
+                    Util.AtERAT("1", mHandler.obtainMessage(Util.EVENT_ERAT));
+                }else{
+                    startTDDWithSim();
+                }
             }
         },10000); //delay wait modem power on
+    }
+
+    private void startTDDWithSim(){
+        powerOffSimCard();
+        setNetWorkTypeTDSCDMAOnly();
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                resetModemBand();
+                Util.AtERAT("1", mHandler.obtainMessage(Util.EVENT_ERAT));
+            }
+        }, 10000);
     }
 
     private void switchToFDDModemRequst(){
@@ -188,11 +211,11 @@ public class OneKeyAllService extends Service{
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                Util.atCOPS(mHandler.obtainMessage(EVENT_GET_COPS));
                 isFDDRequst = true;
                 isOneSearch = false;
                 resultCount = 0;
                 currentRat = "2";
+                Util.atCOPS(mHandler.obtainMessage(EVENT_GET_COPS));
                 Util.AtERAT("1", mHandler.obtainMessage(Util.EVENT_ERAT));
             }
         },10000);
@@ -370,6 +393,7 @@ public class OneKeyAllService extends Service{
 
         if(Util.isSimInsert()){
             if(!isLteRequset){
+                cdmaCount = 0;
                 startLteStep();
             }else {
                 if (currentModemType == Util.MD_TYPE_LWG) {
