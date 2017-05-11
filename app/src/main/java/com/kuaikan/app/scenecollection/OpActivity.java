@@ -52,10 +52,10 @@ public class OpActivity extends Activity implements OnClickListener{
 
         setTitle(type ? R.string.dynamic : R.string.undynamic);
 
-        Off = (Button)findViewById(R.id.cfun_button_0);
-        Off.setOnClickListener(this);
-        On = (Button)findViewById(R.id.cfun_button_1);
-        On.setOnClickListener(this);
+        //Off = (Button)findViewById(R.id.cfun_button_0);
+        //Off.setOnClickListener(this);
+        //On = (Button)findViewById(R.id.cfun_button_1);
+        //On.setOnClickListener(this);
         //Off.setVisibility(View.GONE);
         //On.setVisibility(View.GONE);
     }
@@ -98,7 +98,7 @@ public class OpActivity extends Activity implements OnClickListener{
                 intent.putExtra("one_key_quick", true);
                 startActivity(intent);
                 break;
-            case R.id.cfun_button_0:{
+            /*case R.id.cfun_button_0:{
                 Util.invokeAT(this,new String[]{"AT+EBTSAP=0", "+EBTSAP"},
                         mHandler.obtainMessage(EVENT_EBTSAP));
                 break;
@@ -107,7 +107,7 @@ public class OpActivity extends Activity implements OnClickListener{
                 Util.invokeAT(this,new String[]{"AT+EBTSAP=1", "+EBTSAP"},
                         mHandler.obtainMessage(EVENT_EBTSAP));
                 break;
-            }
+            }*/
         }
     }
 

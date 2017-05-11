@@ -79,7 +79,14 @@ public class OneKeyAllService extends Service{
     public int onStartCommand(Intent intent, int flags, int startId) {
         //Util.AtERAT(currentRat, mHandler.obtainMessage(Util.EVENT_ERAT));
         fristStepRequst();
-        if(intent.getBooleanExtra("show", false)) save = false;
+
+        try {
+            if(intent != null && intent.getBooleanExtra("show", false)) save = false;
+        }catch (Exception e){
+            Log.e("gej", " ---- e ==== " + e.toString());
+        }
+
+
         return super.onStartCommand(intent, flags, startId);
     }
 
