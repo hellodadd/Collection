@@ -198,10 +198,6 @@ public class OneKeyService extends Service{
     }
 
     private void resetModemBand(){
-        /*Util.invokeAT(new String[]{"AT+CFUN=0", "+CFUN"},
-                mHandler.obtainMessage(EVENT_CFUN_0));
-        Util.invokeAT(new String[]{"AT+CFUN=1", "+CFUN"},
-                mHandler.obtainMessage(EVENT_CFUN_1));*/
         Util.invokeAT(new String[]{"AT+EPBSE=10,1,5,480","+EPBSE"},
                 mHandler.obtainMessage(EVENT_EPBSE));
         Util.invokeAT4CDMA(new String[]{"AT+ECBAND=0","+ECBAND"},
