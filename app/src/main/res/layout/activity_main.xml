@@ -46,6 +46,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/one_key_quick" />
+
+    <Button
+        android:id="@+id/reset_network"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/reset_network" />
 <!--
     <Button
         android:id="@+id/cfun_button_0"

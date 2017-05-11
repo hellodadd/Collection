@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.app.Activity;
+import android.widget.Toast;
 
 import com.kuaikan.app.scenecollection.util.Util;
 
@@ -23,6 +24,7 @@ public class OpActivity extends Activity implements OnClickListener{
     private Button OneKeyQuick;
     private Button Off;
     private Button On;
+    private Button resetNetWork;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,12 +45,15 @@ public class OpActivity extends Activity implements OnClickListener{
         oneKeyAll.setOnClickListener(this);
         OneKeyQuick = (Button)findViewById(R.id.one_key_quick);
         OneKeyQuick.setOnClickListener(this);
+        resetNetWork = (Button)findViewById(R.id.reset_network);
+        resetNetWork.setOnClickListener(this);
 
         boolean type = getIntent().getBooleanExtra(Util.COLLECT_TYPE, false);
         gps.setVisibility(type ? View.GONE : View.VISIBLE);
         oneKey.setVisibility(type ? View.GONE : View.VISIBLE);
         oneKeyAll.setVisibility(type ? View.GONE : View.VISIBLE);
         OneKeyQuick.setVisibility(type ? View.GONE : View.VISIBLE);
+        resetNetWork.setVisibility(type ? View.GONE : View.VISIBLE);
 
         setTitle(type ? R.string.dynamic : R.string.undynamic);
 
@@ -97,6 +102,11 @@ public class OpActivity extends Activity implements OnClickListener{
                 intent = new Intent(this, NonSimOneKeyActivity.class);
                 intent.putExtra("one_key_quick", true);
                 startActivity(intent);
+                break;
+            case R.id.reset_network:
+                sendBroadcast(new Intent("com.kuaikan.action_reset_network"));
+                Toast.makeText(this,
+                        getResources().getString(R.string.reset_network_hint),Toast.LENGTH_SHORT).show();
                 break;
             /*case R.id.cfun_button_0:{
                 Util.invokeAT(this,new String[]{"AT+EBTSAP=0", "+EBTSAP"},

@@ -75,6 +75,7 @@ public class OneKeyService extends Service{
     private static final int EVENT_NETWORK_LTE = 205;
     private static final int EVENT_NETWORK_LTE_REQUEST = 206;
     private static final int EVENT_AT_EBTSAP = 207;
+    private static final int EVENT_NETWORK_WCDMA = 208;
 
     private boolean save = true;
 
@@ -82,6 +83,7 @@ public class OneKeyService extends Service{
     private boolean isQuickSearch = false;
 
     private boolean isLteRequset = false;
+    private boolean isFindWcdma = false;
 
     @Override
     public void onCreate() {
@@ -93,21 +95,23 @@ public class OneKeyService extends Service{
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         //Util.AtERAT(currentRat, mHandler.obtainMessage(Util.EVENT_ERAT));
-        if(intent.getBooleanExtra("show", false)) save = false;
-        if(intent.getBooleanExtra("is_show_now", false)){
-            isShowNow = true;
-        }
+        if(intent != null) {
+            if (intent.getBooleanExtra("show", false)) save = false;
+            if (intent.getBooleanExtra("is_show_now", false)) {
+                isShowNow = true;
+            }
 
-        if(Util.getSystemPropertiesBoolean(this,"persist.collection.complete",false)){
-            isQuickSearch = true;
-        }
+            if (Util.getSystemPropertiesBoolean(this, "persist.collection.complete", false)) {
+                isQuickSearch = true;
+            }
 
-        if(intent.getBooleanExtra("is_quick_search",false)){
-            isQuickSearch = true;
-        }
+            if (intent.getBooleanExtra("is_quick_search", false)) {
+                isQuickSearch = true;
+            }
 
-        if(intent.getBooleanExtra("is_all_search",false)){
-            isQuickSearch = false;
+            if (intent.getBooleanExtra("is_all_search", false)) {
+                isQuickSearch = false;
+            }
         }
 
         Log.d("zwb","zwb -------- isQuickSearch = " + isQuickSearch);
@@ -131,6 +135,13 @@ public class OneKeyService extends Service{
                 Util.PREFERRED_NETWORK_MODE + Util.getDefaultSubscription(),11);
         Util.invokeSetPreferredNetworkType(11, mHandler.obtainMessage(EVENT_NETWORK_LTE));
     }
+
+    private void setNetWorkTypeWCDMAOnly(){
+        Util.setSettingsPutInt(this, getContentResolver(),
+                Util.PREFERRED_NETWORK_MODE + Util.getDefaultSubscription(),2);
+        Util.invokeSetPreferredNetworkType(2, mHandler.obtainMessage(EVENT_NETWORK_WCDMA));
+    }
+
 
     private void startRequstByFDD(){
         int modemType = Util.reflectModemType();
@@ -202,6 +213,17 @@ public class OneKeyService extends Service{
                 mHandler.obtainMessage(EVENT_EPBSE));
         Util.invokeAT4CDMA(new String[]{"AT+ECBAND=0","+ECBAND"},
                 mHandler.obtainMessage(EVENT_ECBAND));
+    }
+
+    private void retryWcdmaRequest(){
+        setNetWorkTypeWCDMAOnly();
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                currentRat = "2";
+                Util.AtERAT(currentRat, mHandler.obtainMessage(Util.EVENT_ERAT));
+            }
+        },10000);
     }
 
     Handler mHandler = new Handler() {
@@ -295,6 +317,10 @@ public class OneKeyService extends Service{
                 }
                 case EVENT_AT_EBTSAP:{
                     Util.showOriginResult(msg, "EBTSAP");
+                    break;
+                }
+                case EVENT_NETWORK_WCDMA:{
+                    Util.showOriginResult(msg, "network wcdma");
                     break;
                 }
             }
@@ -460,6 +486,9 @@ public class OneKeyService extends Service{
         int mnc = Integer.parseInt(subItems[5]);
         int repeatTime = 10;
         if(currentRat.equals(rat) && mnc == getMncFromResultCount(resultCount)){
+            if(currentRat.equals("2")){
+                isFindWcdma = true;
+            }
             if(!isOneSearch){
                 resultLists.add(o);
                 resultLists1.add(o);
@@ -542,7 +571,12 @@ public class OneKeyService extends Service{
                           currentRat = "7";
                           Util.AtERAT("3", mHandler.obtainMessage(Util.EVENT_ERAT));
                     }else {
-                        sendCDMARequest();
+                        if(!isFindWcdma){
+                            isFindWcdma = true;
+                            retryWcdmaRequest();
+                        }else {
+                            sendCDMARequest();
+                        }
                     }
                 } else if (currentRat.equals("7") && resultCount == 3) {
                     resultCount = 0;
