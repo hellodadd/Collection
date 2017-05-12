@@ -23,8 +23,8 @@
     <string name="undynamic">静态采集</string>
 
     <string name="gps">GPS</string>
-    <string name="one_key">一键采集</string>
-    <string name="one_key_all">完整采集</string>
+    <string name="one_key">完整采集</string>
+    <string name="one_key_all">完整采集(带移动3G)</string>
     <string name="one_key_quick">快速采集</string>
 
     <string name="lac">LAC</string>
@@ -53,7 +53,7 @@
     <string name="search_ing">采集中</string>
     <string name="search_end">采集完成</string>
 
-    <string name="reset_network">打开数据模式</string>
+    <string name="reset_network">切换到数据模式</string>
     <string name="reset_network_hint">请稍候！</string>
 
 </resources>
