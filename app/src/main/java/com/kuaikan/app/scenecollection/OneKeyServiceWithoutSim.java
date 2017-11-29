@@ -90,7 +90,8 @@ public class OneKeyServiceWithoutSim extends Service{
             isShowNow = true;
         }
 
-        if(Util.getSystemPropertiesBoolean(this,"persist.collection.complete",false)){
+        if(Util.getSystemPropertiesBoolean(this,"persist.collection.complete",false)
+                || Util.getSystemPropertiesBoolean(this,"persist.sys.collection.complete",false)){
             isQuickSearch = true;
         }
 
